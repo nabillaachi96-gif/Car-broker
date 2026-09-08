@@ -1,0 +1,17 @@
+{
+  "name": "دفتر السيارات",
+  "short_name": "دفتر السيارات",
+  "description": "تتبّع زبائن استيراد السيارات، الشحن، الجمركة، والأرباح",
+  "start_url": "./car-broker.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#EFF2F0",
+  "theme_color": "#16283D",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
