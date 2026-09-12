@@ -1,4 +1,4 @@
-const CACHE_NAME = 'carbroker-cache-v1';
+const CACHE_NAME = 'carbroker-cache-v2';
 const APP_SHELL = ['./car-broker.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (event) => {
@@ -18,7 +18,15 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Network-first: always try to get the latest version. Falls back to the
+  // cached copy only when there is no internet connection.
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    fetch(event.request)
+      .then((response) => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
