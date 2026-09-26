@@ -73,6 +73,14 @@
   .stat.due-in .num{color:var(--coral);}
   .stat.due-out .num{color:var(--navy);}
 
+  .tabbar{display:flex;gap:8px;margin-bottom:14px;}
+  .tab-btn{
+    flex:1;padding:10px;border-radius:12px;border:1px solid var(--border);
+    background:var(--card);font-size:13.5px;font-weight:600;color:var(--muted);
+    cursor:pointer;font-family:inherit;
+  }
+  .tab-btn.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+
   .toolbar{display:flex;gap:8px;margin-bottom:14px;}
   .search{
     flex:1;
@@ -214,6 +222,18 @@
   .id-placeholder{width:56px;height:56px;border-radius:8px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted);text-align:center;}
   .logo-preview{max-width:100px;max-height:60px;margin-top:6px;border-radius:6px;}
 
+  .container-card{
+    background:var(--card);
+    border-radius:var(--radius);
+    margin-bottom:12px;
+    padding:14px 16px;
+    box-shadow:0 2px 10px rgba(22,40,61,.06);
+  }
+  .container-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .container-customers{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+  .customer-chip{background:var(--gold-light);color:var(--gold);font-size:12px;padding:4px 10px;border-radius:999px;font-weight:600;}
+  .badge.archived{background:var(--border);color:var(--muted);}
+
   #printArea{display:none;}
   @media print{
     body *{visibility:hidden;}
@@ -244,7 +264,7 @@
       <h1>دفتر السيارات</h1>
       <div class="sub">تتبّع الزبائن والشحن والأرباح</div>
     </div>
-    <button class="btn btn-gold" id="openAddCustomer">+ زبون جديد</button>
+    <button class="btn btn-gold" id="mainAddBtn">+ زبون جديد</button>
   </div>
 </header>
 
@@ -257,10 +277,16 @@
     <input type="file" id="importFile" accept=".json" style="display:none;">
     <input type="file" id="idPhotoInput" accept="image/*" style="display:none;">
   </div>
+  <div class="tabbar" id="viewTabs">
+    <button class="tab-btn active" data-view="customers">🚗 الزبائن</button>
+    <button class="tab-btn" data-view="containers">📦 الحاويات</button>
+  </div>
   <div class="toolbar">
     <input type="text" class="search" id="searchBox" placeholder="ابحث بالاسم أو الهاتف...">
+    <button class="btn btn-ghost btn-sm" id="archiveToggleBtn">📦 الأرشيف</button>
   </div>
   <div id="customerList"></div>
+  <div id="containerList" style="display:none;"></div>
 </div>
 
 <div class="overlay" id="overlay">
@@ -274,9 +300,14 @@
 <script>
 const STORAGE_KEY = 'carbroker_customers_v1';
 const SETTINGS_KEY = 'carbroker_settings_v1';
+const CONTAINERS_KEY = 'carbroker_containers_v1';
 let customers = [];
+let containers = [];
 let settings = {};
 let openCustomerId = null;
+let viewMode = 'customers'; // 'customers' | 'containers'
+let customerArchiveView = false;
+let containerArchiveView = false;
 
 function uid(){ return 'id' + Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
 
@@ -340,7 +371,7 @@ async function loadData(){
   }catch(e){
     customers = [];
   }
-  customers.forEach(c => (c.cars||[]).forEach(migrateCar));
+  customers.forEach(c => { migrateCustomer(c); (c.cars||[]).forEach(migrateCar); });
   render();
 }
 
@@ -352,8 +383,36 @@ async function saveData(){
   }
 }
 
+async function loadContainers(){
+  try{
+    const raw = localStorage.getItem(CONTAINERS_KEY);
+    containers = raw ? JSON.parse(raw) : [];
+  }catch(e){
+    containers = [];
+  }
+  containers.forEach(migrateContainer);
+}
+
+async function saveContainers(){
+  try{
+    localStorage.setItem(CONTAINERS_KEY, JSON.stringify(containers));
+  }catch(e){
+    showToast('تعذّر حفظ بيانات الحاويات على هذا الجهاز');
+  }
+}
+
+function migrateCustomer(c){
+  if(c.archived === undefined) c.archived = false;
+}
+
+function migrateContainer(k){
+  if(k.archived === undefined) k.archived = false;
+  if(!Array.isArray(k.customerIds)) k.customerIds = [];
+}
+
 function exportBackup(){
-  const blob = new Blob([JSON.stringify(customers, null, 2)], {type:'application/json'});
+  const payload = {customers, containers};
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   const d = new Date();
@@ -372,12 +431,25 @@ function importBackup(file){
   reader.onload = async (e) => {
     try{
       const data = JSON.parse(e.target.result);
-      if(!Array.isArray(data)) throw new Error('bad format');
+      let newCustomers, newContainers;
+      if(Array.isArray(data)){
+        newCustomers = data;
+        newContainers = [];
+      } else if(data && Array.isArray(data.customers)){
+        newCustomers = data.customers;
+        newContainers = Array.isArray(data.containers) ? data.containers : [];
+      } else {
+        throw new Error('bad format');
+      }
       if(!confirm('سيتم استبدال كل البيانات الحالية بالنسخة الاحتياطية. متابعة؟')) return;
-      customers = data;
-      customers.forEach(c => (c.cars||[]).forEach(migrateCar));
+      customers = newCustomers;
+      containers = newContainers;
+      customers.forEach(c => { migrateCustomer(c); (c.cars||[]).forEach(migrateCar); });
+      containers.forEach(migrateContainer);
       await saveData();
+      await saveContainers();
       render();
+      updateArchiveToggleLabel();
       showToast('تم استيراد النسخة الاحتياطية');
     }catch(err){
       showToast('الملف غير صالح كنسخة احتياطية');
@@ -439,9 +511,11 @@ function renderStats(){
   customers.forEach(c => c.cars.forEach(car => {
     const r = calcCar(car);
     totalProfit += r.profitDZD;
-    totalDueIn += r.remainingCustomerDZD;
-    totalDueOutUSD += r.remainingSellerUSD + r.remainingShipperUSD;
-    if(r.includesCustoms) totalDueCustomsDZD += r.remainingCustomsDZD;
+    if(!c.archived){
+      totalDueIn += r.remainingCustomerDZD;
+      totalDueOutUSD += r.remainingSellerUSD + r.remainingShipperUSD;
+      if(r.includesCustoms) totalDueCustomsDZD += r.remainingCustomsDZD;
+    }
   }));
   document.getElementById('stats').innerHTML = `
     <div class="stat profit"><div class="num">${fmt(totalProfit,'دج')}</div><div class="lbl">الفائدة الإجمالية</div></div>
@@ -465,12 +539,15 @@ function customerTotals(c){
 function renderList(){
   const q = document.getElementById('searchBox').value.trim().toLowerCase();
   const list = document.getElementById('customerList');
-  const filtered = customers.filter(c =>
+  const pool = customers.filter(c => !!c.archived === customerArchiveView);
+  const filtered = pool.filter(c =>
     !q || c.name.toLowerCase().includes(q) || (c.phone||'').includes(q)
   );
 
-  if(customers.length === 0){
-    list.innerHTML = `<div class="empty"><div class="big">🚗</div>لا يوجد زبائن بعد<br>اضغط "زبون جديد" للبدء</div>`;
+  if(pool.length === 0){
+    list.innerHTML = customerArchiveView
+      ? `<div class="empty"><div class="big">📦</div>لا يوجد زبائن في الأرشيف</div>`
+      : `<div class="empty"><div class="big">🚗</div>لا يوجد زبائن بعد<br>اضغط "زبون جديد" للبدء</div>`;
     return;
   }
   if(filtered.length === 0){
@@ -490,28 +567,34 @@ function renderList(){
           <div class="meta">${escapeHtml(c.location||'')}${c.location&&c.phone?' · ':''}${escapeHtml(c.phone||'')} · ${c.cars.length} ${c.cars.length===1?'سيارة':'سيارات'}</div>
         </div>
         <div class="right">
-          <span class="badge ${fullyPaid?'ok':'due'}">${fullyPaid?'مسدد بالكامل':'يوجد مستحقات'}</span>
+          ${c.archived ? '<span class="badge archived">مؤرشف</span>' : `<span class="badge ${fullyPaid?'ok':'due'}">${fullyPaid?'مسدد بالكامل':'يوجد مستحقات'}</span>`}
           <span class="chev">▾</span>
         </div>
       </div>
       <div class="cars">
         <div class="id-photo-row">
           ${c.idPhoto ? `<img src="${c.idPhoto}" class="id-thumb">` : `<div class="id-placeholder">لا توجد صورة</div>`}
-          <button class="btn btn-ghost btn-sm" data-upload-id="${c.id}">📷 ${c.idPhoto ? 'تغيير صورة الهوية' : 'رفع صورة الهوية'}</button>
-          ${c.idPhoto ? `<button class="btn btn-danger-ghost btn-sm" data-remove-id="${c.id}">حذف الصورة</button>` : ''}
+          ${!c.archived ? `<button class="btn btn-ghost btn-sm" data-upload-id="${c.id}">📷 ${c.idPhoto ? 'تغيير صورة الهوية' : 'رفع صورة الهوية'}</button>` : ''}
+          ${c.idPhoto && !c.archived ? `<button class="btn btn-danger-ghost btn-sm" data-remove-id="${c.id}">حذف الصورة</button>` : ''}
         </div>
-        ${c.cars.map(car => renderCar(c.id, car)).join('')}
-        <button class="btn btn-ghost btn-block add-car-btn" data-add-car="${c.id}">+ إضافة سيارة لهذا الزبون</button>
-        <div style="display:flex;gap:8px;margin-top:8px;">
-          <button class="btn btn-ghost btn-sm" style="flex:1" data-edit-customer="${c.id}">تعديل بيانات الزبون</button>
-          <button class="btn btn-danger-ghost btn-sm" style="flex:1" data-delete-customer="${c.id}">حذف الزبون</button>
+        ${c.cars.map(car => renderCar(c.id, car, c.archived)).join('')}
+        ${!c.archived ? `<button class="btn btn-ghost btn-block add-car-btn" data-add-car="${c.id}">+ إضافة سيارة لهذا الزبون</button>` : ''}
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+          ${c.archived ? `
+            <button class="btn btn-ghost btn-sm" style="flex:1" data-restore-customer="${c.id}">↩ استعادة من الأرشيف</button>
+            <button class="btn btn-danger-ghost btn-sm" style="flex:1" data-delete-customer="${c.id}">حذف نهائي</button>
+          ` : `
+            <button class="btn btn-ghost btn-sm" style="flex:1" data-edit-customer="${c.id}">تعديل بيانات الزبون</button>
+            <button class="btn btn-gold btn-sm" style="flex:1" data-archive-customer="${c.id}">📦 أرشفة الزبون</button>
+            <button class="btn btn-danger-ghost btn-sm" style="flex:1" data-delete-customer="${c.id}">حذف الزبون</button>
+          `}
         </div>
       </div>
     </div>`;
   }).join('');
 }
 
-function renderCar(customerId, car){
+function renderCar(customerId, car, archived){
   const r = calcCar(car);
   const titleBits = [car.makeType, car.category].filter(Boolean).join(' - ');
   return `
@@ -536,6 +619,7 @@ function renderCar(customerId, car){
       ` : ''}
     </div>
     ${car.notes ? `<div class="notes">${escapeHtml(car.notes)}</div>` : ''}
+    ${archived ? '' : `
     <div class="car-actions">
       <button class="btn btn-ghost btn-sm" data-add-payment="${customerId}|${car.id}|customer">+ دفعة من الزبون</button>
       <button class="btn btn-ghost btn-sm" data-add-payment="${customerId}|${car.id}|seller">+ دفعة للبائع</button>
@@ -546,6 +630,7 @@ function renderCar(customerId, car){
       <button class="btn btn-ghost btn-sm" data-edit-car="${customerId}|${car.id}">تعديل</button>
       <button class="btn btn-danger-ghost btn-sm" data-delete-car="${customerId}|${car.id}">حذف</button>
     </div>
+    `}
   </div>`;
 }
 
@@ -557,7 +642,20 @@ function escapeHtml(s){
 
 function render(){
   renderStats();
-  renderList();
+  if(viewMode === 'containers') renderContainerList();
+  else renderList();
+}
+
+function updateArchiveToggleLabel(){
+  const btn = document.getElementById('archiveToggleBtn');
+  if(!btn) return;
+  if(viewMode === 'customers'){
+    const n = customers.filter(c=>c.archived).length;
+    btn.textContent = customerArchiveView ? '↩ عرض النشطين' : `📦 الأرشيف (${n})`;
+  } else {
+    const n = containers.filter(k=>k.archived).length;
+    btn.textContent = containerArchiveView ? '↩ عرض النشطة' : `📦 الأرشيف (${n})`;
+  }
 }
 
 // ---------- Modal helpers ----------
@@ -788,6 +886,93 @@ function readCarForm(){
   return data;
 }
 
+function containerFormHtml(existing){
+  const k = existing || {number:'', price:'', expectedDate:'', notes:'', customerIds:[]};
+  const idsAlreadyIn = k.customerIds || [];
+  const poolCustomers = customers.filter(c => !c.archived || idsAlreadyIn.includes(c.id));
+  return `
+    <h2>${existing?'تعديل بيانات الحاوية':'حاوية جديدة'}</h2>
+    <div class="field"><label>رقم الحاوية</label><input id="f_containerNumber" value="${escapeHtml(k.number)}" placeholder="مثال: MSKU1234567"></div>
+    <div class="field"><label>ثمن الحاوية ($)</label><input type="number" id="f_containerPrice" value="${k.price||''}"></div>
+    <div class="field"><label>التاريخ المتوقع للوصول</label><input type="date" id="f_containerDate" value="${k.expectedDate||''}"></div>
+    <div class="field">
+      <label>الزبائن أصحاب السيارات في هذه الحاوية</label>
+      ${poolCustomers.length === 0 ? '<p style="font-size:12.5px;color:var(--muted);">لا يوجد زبائن لإضافتهم بعد</p>' : `
+      <div style="max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;padding:8px 10px;">
+        ${poolCustomers.map(c => `
+          <label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;font-size:14px;">
+            <input type="checkbox" class="f_containerCustomer" value="${c.id}" style="width:auto;" ${idsAlreadyIn.includes(c.id)?'checked':''}>
+            ${escapeHtml(c.name)}${c.phone ? ' - ' + escapeHtml(c.phone) : ''}
+          </label>
+        `).join('')}
+      </div>
+      `}
+    </div>
+    <div class="field"><label>ملاحظات</label><textarea id="f_containerNotes" rows="2">${escapeHtml(k.notes||'')}</textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-block" id="saveContainer" ${existing?`data-editing="${existing.id}"`:''}>${existing?'حفظ التعديلات':'إضافة الحاوية'}</button>
+    </div>
+  `;
+}
+
+function readContainerForm(){
+  const checked = Array.from(document.querySelectorAll('.f_containerCustomer:checked')).map(el=>el.value);
+  return {
+    number: document.getElementById('f_containerNumber').value.trim(),
+    price: parseFloat(document.getElementById('f_containerPrice').value)||0,
+    expectedDate: document.getElementById('f_containerDate').value,
+    notes: document.getElementById('f_containerNotes').value.trim(),
+    customerIds: checked
+  };
+}
+
+function renderContainerList(){
+  const q = document.getElementById('searchBox').value.trim().toLowerCase();
+  const list = document.getElementById('containerList');
+  const pool = containers.filter(k => !!k.archived === containerArchiveView);
+  const filtered = pool.filter(k => !q || (k.number||'').toLowerCase().includes(q));
+
+  if(pool.length === 0){
+    list.innerHTML = containerArchiveView
+      ? `<div class="empty"><div class="big">📦</div>لا توجد حاويات في الأرشيف</div>`
+      : `<div class="empty"><div class="big">📦</div>لا توجد حاويات بعد<br>اضغط "حاوية جديدة" للبدء</div>`;
+    return;
+  }
+  if(filtered.length === 0){
+    list.innerHTML = `<div class="empty">لا توجد نتائج مطابقة</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(k => {
+    const names = (k.customerIds||[]).map(id => {
+      const c = customers.find(x=>x.id===id);
+      return c ? c.name : null;
+    }).filter(Boolean);
+    return `
+    <div class="container-card">
+      <div class="container-head">
+        <div>
+          <h3 style="margin:0;font-size:15.5px;">📦 ${escapeHtml(k.number||'بدون رقم')}</h3>
+          <div style="font-size:12.5px;color:var(--muted);margin-top:3px;">${k.expectedDate ? 'الوصول المتوقع: '+escapeHtml(k.expectedDate) : ''}${k.archived ? ' · <span style="color:var(--muted);font-weight:600;">مؤرشفة</span>' : ''}</div>
+        </div>
+        <div style="font-weight:700;color:var(--gold);font-size:14px;white-space:nowrap;">${fmt(k.price,'$')}</div>
+      </div>
+      ${names.length ? `<div class="container-customers">${names.map(n=>`<span class="customer-chip">${escapeHtml(n)}</span>`).join('')}</div>` : '<p style="font-size:12.5px;color:var(--muted);margin:8px 0 0;">لا يوجد زبائن مرتبطون</p>'}
+      ${k.notes ? `<div class="notes">${escapeHtml(k.notes)}</div>` : ''}
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+        ${k.archived ? `
+          <button class="btn btn-ghost btn-sm" style="flex:1" data-restore-container="${k.id}">↩ استعادة من الأرشيف</button>
+          <button class="btn btn-danger-ghost btn-sm" style="flex:1" data-delete-container="${k.id}">حذف نهائي</button>
+        ` : `
+          <button class="btn btn-ghost btn-sm" style="flex:1" data-edit-container="${k.id}">تعديل</button>
+          <button class="btn btn-gold btn-sm" style="flex:1" data-archive-container="${k.id}">📦 أرشفة الحاوية</button>
+          <button class="btn btn-danger-ghost btn-sm" style="flex:1" data-delete-container="${k.id}">حذف</button>
+        `}
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function getSuggestions(field){
   const set = new Set();
   customers.forEach(c => (c.cars||[]).forEach(car => {
@@ -804,11 +989,37 @@ function nowStr(){
 }
 
 // ---------- Event wiring ----------
-document.getElementById('openAddCustomer').addEventListener('click', () => {
-  openModal(customerFormHtml(null));
+document.getElementById('mainAddBtn').addEventListener('click', () => {
+  if(viewMode === 'containers') openModal(containerFormHtml(null));
+  else openModal(customerFormHtml(null));
 });
 
-document.getElementById('searchBox').addEventListener('input', renderList);
+document.getElementById('searchBox').addEventListener('input', () => {
+  if(viewMode === 'containers') renderContainerList();
+  else renderList();
+});
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    viewMode = btn.dataset.view;
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b===btn));
+    document.getElementById('customerList').style.display = viewMode==='customers' ? '' : 'none';
+    document.getElementById('containerList').style.display = viewMode==='containers' ? '' : 'none';
+    document.getElementById('mainAddBtn').textContent = viewMode==='customers' ? '+ زبون جديد' : '+ حاوية جديدة';
+    document.getElementById('searchBox').placeholder = viewMode==='customers' ? 'ابحث بالاسم أو الهاتف...' : 'ابحث برقم الحاوية...';
+    document.getElementById('searchBox').value = '';
+    updateArchiveToggleLabel();
+    render();
+  });
+});
+
+document.getElementById('archiveToggleBtn').addEventListener('click', () => {
+  if(viewMode === 'customers') customerArchiveView = !customerArchiveView;
+  else containerArchiveView = !containerArchiveView;
+  openCustomerId = null;
+  updateArchiveToggleLabel();
+  render();
+});
 
 document.getElementById('settingsBtn').addEventListener('click', () => {
   openModal(settingsModalHtml());
@@ -967,6 +1178,35 @@ document.getElementById('modalBody').addEventListener('click', async (e) => {
     render();
     showToast('تم حذف السيارة');
   }
+
+  if(e.target.id === 'saveContainer'){
+    const number = document.getElementById('f_containerNumber').value.trim();
+    if(!number){ showToast('الرجاء إدخال رقم الحاوية'); return; }
+    const data = readContainerForm();
+    if(e.target.dataset.editing){
+      const idx = containers.findIndex(x=>x.id===e.target.dataset.editing);
+      containers[idx] = {...containers[idx], ...data};
+    } else {
+      data.id = uid();
+      data.archived = false;
+      data.dateAdded = nowStr();
+      containers.push(data);
+    }
+    await saveContainers();
+    closeModal();
+    render();
+    updateArchiveToggleLabel();
+    showToast('تم الحفظ');
+  }
+
+  if(e.target.id === 'confirmDeleteContainer'){
+    containers = containers.filter(x=>x.id!==e.target.dataset.container);
+    await saveContainers();
+    closeModal();
+    render();
+    updateArchiveToggleLabel();
+    showToast('تم حذف الحاوية');
+  }
 });
 
 document.getElementById('customerList').addEventListener('click', async (e) => {
@@ -992,6 +1232,29 @@ document.getElementById('customerList').addEventListener('click', async (e) => {
     await saveData();
     render();
     showToast('تم حذف الصورة');
+    return;
+  }
+  const archiveCustomer = e.target.closest('[data-archive-customer]');
+  if(archiveCustomer){
+    const c = customers.find(x=>x.id===archiveCustomer.dataset.archiveCustomer);
+    const {dueIn, dueOut, dueCustoms} = customerTotals(c);
+    const hasDue = dueIn > 0 || dueOut > 0 || dueCustoms > 0;
+    if(hasDue && !confirm('لا تزال هناك مستحقات غير مسددة لهذا الزبون. هل تريد أرشفته رغم ذلك؟')) return;
+    c.archived = true;
+    await saveData();
+    render();
+    updateArchiveToggleLabel();
+    showToast('تم أرشفة الزبون');
+    return;
+  }
+  const restoreCustomer = e.target.closest('[data-restore-customer]');
+  if(restoreCustomer){
+    const c = customers.find(x=>x.id===restoreCustomer.dataset.restoreCustomer);
+    c.archived = false;
+    await saveData();
+    render();
+    updateArchiveToggleLabel();
+    showToast('تمت استعادة الزبون');
     return;
   }
   const addCar = e.target.closest('[data-add-car]');
@@ -1079,8 +1342,52 @@ document.getElementById('customerList').addEventListener('click', async (e) => {
   }
 });
 
+document.getElementById('containerList').addEventListener('click', async (e) => {
+  const editBtn = e.target.closest('[data-edit-container]');
+  if(editBtn){
+    const k = containers.find(x=>x.id===editBtn.dataset.editContainer);
+    openModal(containerFormHtml(k));
+    return;
+  }
+  const archiveBtn = e.target.closest('[data-archive-container]');
+  if(archiveBtn){
+    if(!confirm('هل تم تسليم جميع السيارات في هذه الحاوية؟ سيتم نقلها إلى الأرشيف.')) return;
+    const k = containers.find(x=>x.id===archiveBtn.dataset.archiveContainer);
+    k.archived = true;
+    await saveContainers();
+    render();
+    updateArchiveToggleLabel();
+    showToast('تم أرشفة الحاوية');
+    return;
+  }
+  const restoreBtn = e.target.closest('[data-restore-container]');
+  if(restoreBtn){
+    const k = containers.find(x=>x.id===restoreBtn.dataset.restoreContainer);
+    k.archived = false;
+    await saveContainers();
+    render();
+    updateArchiveToggleLabel();
+    showToast('تمت استعادة الحاوية');
+    return;
+  }
+  const deleteBtn = e.target.closest('[data-delete-container]');
+  if(deleteBtn){
+    const containerId = deleteBtn.dataset.deleteContainer;
+    openModal(`
+      <h2>تأكيد الحذف</h2>
+      <p>هل أنت متأكد من حذف هذه الحاوية؟ لا يمكن التراجع عن هذا الإجراء.</p>
+      <div class="modal-actions">
+        <button class="btn btn-danger-ghost btn-block" id="confirmDeleteContainer" data-container="${containerId}">نعم، احذف</button>
+      </div>
+    `);
+    return;
+  }
+});
+
 loadSettings();
+loadContainers();
 loadData();
+updateArchiveToggleLabel();
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
