@@ -407,7 +407,21 @@ function migrateCustomer(c){
 
 function migrateContainer(k){
   if(k.archived === undefined) k.archived = false;
-  if(!Array.isArray(k.customerIds)) k.customerIds = [];
+  if(!Array.isArray(k.carRefs)){
+    // Migrate from the old customer-level linking to per-car linking.
+    // Only auto-map customers who have exactly one car (unambiguous);
+    // for customers with several cars, leave unassigned so the user
+    // can pick the right car(s) explicitly when editing the container.
+    const oldIds = Array.isArray(k.customerIds) ? k.customerIds : [];
+    k.carRefs = [];
+    oldIds.forEach(cid => {
+      const c = customers.find(x=>x.id===cid);
+      if(c && Array.isArray(c.cars) && c.cars.length === 1){
+        k.carRefs.push({customerId:cid, carId:c.cars[0].id});
+      }
+    });
+    delete k.customerIds;
+  }
 }
 
 function exportBackup(){
@@ -887,22 +901,36 @@ function readCarForm(){
 }
 
 function containerFormHtml(existing){
-  const k = existing || {number:'', price:'', expectedDate:'', notes:'', customerIds:[]};
-  const idsAlreadyIn = k.customerIds || [];
-  const poolCustomers = customers.filter(c => !c.archived || idsAlreadyIn.includes(c.id));
+  const k = existing || {number:'', price:'', expectedDate:'', notes:'', carRefs:[]};
+  const currentRefs = k.carRefs || [];
+  const currentKeySet = new Set(currentRefs.map(r => r.customerId+'|'+r.carId));
+  const assignedElsewhere = new Set();
+  containers.forEach(cont => {
+    if(existing && cont.id === existing.id) return;
+    (cont.carRefs||[]).forEach(r => assignedElsewhere.add(r.customerId+'|'+r.carId));
+  });
+  const options = [];
+  customers.filter(c=>!c.archived).forEach(c => {
+    (c.cars||[]).forEach(car => {
+      const key = c.id+'|'+car.id;
+      if(assignedElsewhere.has(key) && !currentKeySet.has(key)) return;
+      const label = [car.makeType, car.category].filter(Boolean).join(' - ') || 'سيارة بدون تفاصيل';
+      options.push({key, customerName:c.name, carLabel:label});
+    });
+  });
   return `
     <h2>${existing?'تعديل بيانات الحاوية':'حاوية جديدة'}</h2>
     <div class="field"><label>رقم الحاوية</label><input id="f_containerNumber" value="${escapeHtml(k.number)}" placeholder="مثال: MSKU1234567"></div>
     <div class="field"><label>ثمن الحاوية ($)</label><input type="number" id="f_containerPrice" value="${k.price||''}"></div>
     <div class="field"><label>التاريخ المتوقع للوصول</label><input type="date" id="f_containerDate" value="${k.expectedDate||''}"></div>
     <div class="field">
-      <label>الزبائن أصحاب السيارات في هذه الحاوية</label>
-      ${poolCustomers.length === 0 ? '<p style="font-size:12.5px;color:var(--muted);">لا يوجد زبائن لإضافتهم بعد</p>' : `
-      <div style="max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;padding:8px 10px;">
-        ${poolCustomers.map(c => `
+      <label>السيارات في هذه الحاوية</label>
+      ${options.length === 0 ? '<p style="font-size:12.5px;color:var(--muted);">لا يوجد سيارات متاحة لإضافتها (كل السيارات موزّعة على حاويات أخرى بالفعل)</p>' : `
+      <div style="max-height:260px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;padding:8px 10px;">
+        ${options.map(o => `
           <label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;font-size:14px;">
-            <input type="checkbox" class="f_containerCustomer" value="${c.id}" style="width:auto;" ${idsAlreadyIn.includes(c.id)?'checked':''}>
-            ${escapeHtml(c.name)}${c.phone ? ' - ' + escapeHtml(c.phone) : ''}
+            <input type="checkbox" class="f_containerCar" value="${o.key}" style="width:auto;" ${currentKeySet.has(o.key)?'checked':''}>
+            <span>${escapeHtml(o.customerName)} <span style="color:var(--muted);">— ${escapeHtml(o.carLabel)}</span></span>
           </label>
         `).join('')}
       </div>
@@ -916,13 +944,17 @@ function containerFormHtml(existing){
 }
 
 function readContainerForm(){
-  const checked = Array.from(document.querySelectorAll('.f_containerCustomer:checked')).map(el=>el.value);
+  const checked = Array.from(document.querySelectorAll('.f_containerCar:checked')).map(el=>el.value);
+  const carRefs = checked.map(key => {
+    const [customerId, carId] = key.split('|');
+    return {customerId, carId};
+  });
   return {
     number: document.getElementById('f_containerNumber').value.trim(),
     price: parseFloat(document.getElementById('f_containerPrice').value)||0,
     expectedDate: document.getElementById('f_containerDate').value,
     notes: document.getElementById('f_containerNotes').value.trim(),
-    customerIds: checked
+    carRefs: carRefs
   };
 }
 
@@ -944,9 +976,12 @@ function renderContainerList(){
   }
 
   list.innerHTML = filtered.map(k => {
-    const names = (k.customerIds||[]).map(id => {
-      const c = customers.find(x=>x.id===id);
-      return c ? c.name : null;
+    const names = (k.carRefs||[]).map(r => {
+      const c = customers.find(x=>x.id===r.customerId);
+      if(!c) return null;
+      const car = (c.cars||[]).find(x=>x.id===r.carId);
+      const label = car ? [car.makeType, car.category].filter(Boolean).join(' - ') : '';
+      return c.name + (label ? ' - ' + label : '');
     }).filter(Boolean);
     return `
     <div class="container-card">
@@ -1385,9 +1420,10 @@ document.getElementById('containerList').addEventListener('click', async (e) => 
 });
 
 loadSettings();
-loadContainers();
 loadData();
+loadContainers();
 updateArchiveToggleLabel();
+render();
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
