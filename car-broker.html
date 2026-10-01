@@ -241,6 +241,8 @@
   #printArea{display:none;}
   @media print{
     @page{ margin:14mm 12mm; }
+    @page wide{ margin:10mm; size:landscape; }
+    .manifest-wide{ page:wide; }
     body *{visibility:hidden;}
     #printArea, #printArea *{visibility:visible;}
     #printArea{display:block;position:absolute;top:0;left:0;width:100%;padding:0;font-family:'Segoe UI', Tahoma, Arial, sans-serif;color:#1E2530;}
@@ -285,9 +287,9 @@
     .manifest-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #16283D;padding-bottom:12px;margin-bottom:16px;}
     .manifest-title{font-size:17px;font-weight:800;color:#16283D;}
     .manifest-meta{font-size:11.5px;color:#444;text-align:left;direction:ltr;line-height:1.8;}
-    table.manifest-table{width:100%;border-collapse:collapse;font-size:12px;}
-    table.manifest-table th{background:#16283D;color:#fff;padding:8px 10px;text-align:center;}
-    table.manifest-table td{border:1px solid #D8DCE2;padding:8px 10px;text-align:center;}
+    table.manifest-table{width:100%;border-collapse:collapse;font-size:10px;table-layout:fixed;word-wrap:break-word;}
+    table.manifest-table th{background:#16283D;color:#fff;padding:6px 5px;text-align:center;font-size:9px;}
+    table.manifest-table td{border:1px solid #D8DCE2;padding:6px 5px;text-align:center;word-break:break-word;}
     table.manifest-table tr:nth-child(even) td{background:#FAFBFC;}
   }
 </style>
@@ -821,26 +823,39 @@ function printContainerManifest(containerId){
     const c = customers.find(x=>x.id===r.customerId);
     if(!c) return null;
     const car = (c.cars||[]).find(x=>x.id===r.carId);
-    const carLabel = car ? [car.makeType, car.category].filter(Boolean).join(' - ') : '-';
-    return {name:c.name, phone:c.phone||'-', carLabel};
+    const carLabel = car ? [car.makeType, car.category].filter(Boolean).join(' ') : '-';
+    return {
+      nin: c.nin||'-',
+      name: c.name||'-',
+      address: c.location||'-',
+      postalCode: c.postalCode||'-',
+      passportCode: c.passportCode||'-',
+      phone: c.phone||'-',
+      email: c.email||'-',
+      carLabel: carLabel||'-'
+    };
   }).filter(Boolean);
 
-  const rowsHtml = rows.length ? rows.map((row, i) => `
+  const rowsHtml = rows.length ? rows.map(row => `
     <tr>
-      <td>${i+1}</td>
+      <td style="direction:ltr;">${escapeHtml(row.nin)}</td>
       <td>${escapeHtml(row.name)}</td>
-      <td>${escapeHtml(row.carLabel)}</td>
+      <td>${escapeHtml(row.address)}</td>
+      <td style="direction:ltr;">${escapeHtml(row.postalCode)}</td>
+      <td style="direction:ltr;">${escapeHtml(row.passportCode)}</td>
       <td style="direction:ltr;">${escapeHtml(row.phone)}</td>
+      <td style="direction:ltr;">${escapeHtml(row.email)}</td>
+      <td>${escapeHtml(row.carLabel)}</td>
     </tr>
-  `).join('') : `<tr><td colspan="4">لا توجد سيارات مرتبطة بهذه الحاوية</td></tr>`;
+  `).join('') : `<tr><td colspan="8">لا توجد سيارات مرتبطة بهذه الحاوية</td></tr>`;
 
   const html = `
-    <div class="doc-frame">
+    <div class="doc-frame manifest-wide">
       <div class="doc-topbar"></div>
       <div class="manifest-header">
         <div>
           ${settings.logo ? `<img src="${settings.logo}" style="max-width:80px;max-height:64px;"><br>` : ''}
-          <div class="manifest-title">قائمة سيارات الحاوية</div>
+          <div class="manifest-title">Customer Information - معلومات الزبائن</div>
           <div class="inv-tagline">${escapeHtml(settings.businessName||'')}</div>
         </div>
         <div class="manifest-meta">
@@ -850,7 +865,10 @@ function printContainerManifest(containerId){
         </div>
       </div>
       <table class="manifest-table">
-        <tr><th>#</th><th>Owner Name</th><th>Car Type / Category</th><th>Phone N°</th></tr>
+        <tr>
+          <th>NIN</th><th>FULL NAME</th><th>ADRESS</th><th>CODE POSTAL</th>
+          <th>PASSPORT CODE</th><th>PHONE N°</th><th>EMAIL</th><th>CAR NAME AND COLOR</th>
+        </tr>
         ${rowsHtml}
       </table>
       <div class="inv-footer">${escapeHtml(settings.businessName||'')}${settings.phone ? ' · '+escapeHtml(settings.phone) : ''}</div>
