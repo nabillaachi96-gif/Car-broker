@@ -78,3 +78,1556 @@
     flex:1;padding:10px;border-radius:12px;border:1px solid var(--border);
     background:var(--card);font-size:13.5px;font-weight:600;color:var(--muted);
     cursor:pointer;font-family:inherit;
+  }
+  .tab-btn.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+  .toolbar{display:flex;gap:8px;margin-bottom:14px;}
+  .search{
+    flex:1;
+    padding:11px 14px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background:var(--card);
+    font-size:14.5px;
+    font-family:inherit;
+    color:var(--text);
+  }
+  .search:focus{outline:2px solid var(--navy-light);outline-offset:1px;}
+  .btn{
+    border:none;
+    border-radius:12px;
+    padding:11px 16px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .btn:focus-visible{outline:2px solid var(--navy);outline-offset:2px;}
+  .btn-primary{background:var(--navy);color:#fff;}
+  .btn-primary:hover{background:var(--navy-light);}
+  .btn-gold{background:var(--gold);color:#fff;}
+  .btn-ghost{background:transparent;color:var(--navy);border:1px solid var(--border);}
+  .btn-ghost:hover{background:#fff;}
+  .btn-danger-ghost{background:transparent;color:var(--coral);border:1px solid var(--coral-light);}
+  .btn-sm{padding:7px 12px;font-size:12.5px;border-radius:9px;}
+  .btn-block{width:100%;}
+
+  .empty{
+    text-align:center;
+    padding:60px 20px;
+    color:var(--muted);
+  }
+  .empty .big{font-size:34px;margin-bottom:8px;}
+
+  .customer{
+    background:var(--card);
+    border-radius:var(--radius);
+    margin-bottom:12px;
+    box-shadow:0 2px 10px rgba(22,40,61,.06);
+    overflow:hidden;
+  }
+  .customer-head{
+    padding:14px 16px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    cursor:pointer;
+    gap:10px;
+  }
+  .customer-head .info h3{margin:0;font-size:15.5px;}
+  .customer-head .info .meta{font-size:12.5px;color:var(--muted);margin-top:3px;}
+  .customer-head .right{display:flex;align-items:center;gap:10px;}
+  .badge{
+    font-size:11.5px;
+    font-weight:700;
+    padding:4px 10px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  .badge.ok{background:var(--green-light);color:var(--green);}
+  .badge.due{background:var(--coral-light);color:var(--coral);}
+  .chev{transition:transform .18s ease;color:var(--muted);font-size:13px;}
+  .customer.open .chev{transform:rotate(180deg);}
+
+  .cars{
+    display:none;
+    border-top:1px solid var(--border);
+    padding:6px 12px 14px;
+  }
+  .customer.open .cars{display:block;}
+
+  .car{
+    background:#FAFBFA;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:13px 14px;
+    margin-top:10px;
+  }
+  .car-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+  .car-top .profit-tag{font-size:12.5px;font-weight:700;color:var(--gold);}
+  .car-top .date{font-size:11px;color:var(--muted);}
+  .rows{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin-bottom:10px;}
+  .row-item .k{font-size:11.5px;color:var(--muted);}
+  .row-item .v{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;}
+  .v.coral{color:var(--coral);}
+  .v.green{color:var(--green);}
+  .car-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px;}
+  .notes{font-size:12.5px;color:var(--muted);margin-top:8px;background:var(--gold-light);padding:8px 10px;border-radius:9px;}
+
+  .add-car-btn{margin-top:12px;}
+
+  /* modal */
+  .overlay{
+    position:fixed;inset:0;background:rgba(20,28,38,.5);
+    display:none;align-items:flex-end;justify-content:center;z-index:50;
+  }
+  .overlay.show{display:flex;}
+  .modal{
+    background:#fff;
+    width:100%;max-width:520px;
+    border-radius:18px 18px 0 0;
+    max-height:88vh;
+    overflow-y:auto;
+    padding:20px 18px 24px;
+    animation:up .2s ease;
+  }
+  @media(min-width:600px){
+    .overlay{align-items:center;}
+    .modal{border-radius:16px;margin-bottom:0;}
+  }
+  @keyframes up{from{transform:translateY(24px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  .modal h2{margin:0 0 14px;font-size:17px;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px;}
+  .field input, .field textarea{
+    width:100%;padding:10px 12px;border:1px solid var(--border);
+    border-radius:10px;font-size:14.5px;font-family:inherit;color:var(--text);
+  }
+  .field input:focus, .field textarea:focus{outline:2px solid var(--navy-light);outline-offset:1px;}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .section-title{font-size:12.5px;font-weight:700;color:var(--navy);margin:16px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border);}
+  .modal-actions{display:flex;gap:8px;margin-top:18px;}
+  .close-x{position:absolute;left:14px;top:14px;background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;}
+  .modal{position:relative;}
+
+  .toast{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+    background:var(--navy);color:#fff;padding:10px 20px;border-radius:10px;
+    font-size:13.5px;z-index:100;opacity:0;transition:opacity .25s ease;pointer-events:none;
+  }
+  .toast.show{opacity:1;}
+
+  .id-photo-row{display:flex;align-items:center;gap:10px;margin-top:8px;}
+  .id-thumb{width:56px;height:56px;border-radius:8px;object-fit:cover;border:1px solid var(--border);}
+  .id-placeholder{width:56px;height:56px;border-radius:8px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted);text-align:center;}
+  .customer-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin-top:10px;padding:10px 12px;background:#f7f8fa;border-radius:10px;}
+  .customer-info-grid div{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;}
+  .customer-info-grid .k{color:var(--muted);}
+  .customer-info-grid .v{font-weight:600;color:var(--navy);text-align:left;direction:ltr;}
+  .logo-preview{max-width:100px;max-height:60px;margin-top:6px;border-radius:6px;}
+
+  .container-card{
+    background:var(--card);
+    border-radius:var(--radius);
+    margin-bottom:12px;
+    padding:14px 16px;
+    box-shadow:0 2px 10px rgba(22,40,61,.06);
+  }
+  .container-card.paid{border-right:5px solid var(--green);background:linear-gradient(0deg,#fff,#fff) padding-box;}
+  .container-card.unpaid{border-right:5px solid var(--coral);}
+  .container-card.paid .container-head h3{color:var(--green);}
+  .container-card.unpaid .container-head h3{color:var(--coral);}
+  .container-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .container-customers{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+  .customer-chip{background:var(--gold-light);color:var(--gold);font-size:12px;padding:4px 10px;border-radius:999px;font-weight:600;}
+  .badge.archived{background:var(--border);color:var(--muted);}
+
+  #printArea{display:none;}
+  @media print{
+    @page{ margin:10mm 10mm; }
+    @page wide{ margin:10mm; size:landscape; }
+    .manifest-wide{ page:wide; }
+    body *{visibility:hidden;}
+    #printArea, #printArea *{visibility:visible;}
+    #printArea{display:block;position:absolute;top:0;left:0;width:100%;padding:0;font-family:'Segoe UI', Tahoma, Arial, sans-serif;color:#1E2530;}
+
+    .doc-frame{border:1.5px solid #16283D;border-radius:10px;padding:22px 26px 18px;position:relative;page-break-inside:avoid;}
+    .doc-topbar{height:6px;background:linear-gradient(90deg,#16283D 0%,#B8874B 100%);border-radius:6px;margin:-22px -26px 16px;}
+
+    .inv-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #16283D;padding-bottom:10px;margin-bottom:12px;}
+    .inv-header img{max-width:80px;max-height:64px;border-radius:6px;}
+    .inv-office{font-size:18px;font-weight:800;color:#16283D;letter-spacing:.2px;}
+    .inv-tagline{font-size:11px;color:#6B7280;margin-top:2px;}
+    .inv-meta{font-size:11px;color:#333;text-align:left;line-height:1.8;direction:ltr;}
+    .inv-meta b{color:#16283D;}
+
+    .inv-title{text-align:center;margin:2px 0 12px;}
+    .inv-title .main{font-size:19px;font-weight:800;color:#16283D;letter-spacing:.3px;}
+    .inv-title .sub{display:block;width:70px;height:3px;background:#B8874B;border-radius:3px;margin:8px auto 0;}
+
+    .inv-section-label{font-size:11px;font-weight:700;color:#B8874B;text-transform:uppercase;letter-spacing:.6px;margin:12px 0 6px;}
+
+    table.inv-table{width:100%;border-collapse:collapse;margin-bottom:6px;font-size:12px;}
+    table.inv-table td, table.inv-table th{border:1px solid #D8DCE2;padding:7px 10px;}
+    table.inv-table th{background:#F3F5F7;color:#16283D;font-weight:700;}
+    table.inv-table tr:nth-child(even) td{background:#FAFBFC;}
+    .inv-info-table{table-layout:fixed;}
+    .inv-info-table td{font-size:11.5px;line-height:1.75;vertical-align:top;}
+    .inv-info-table td b{color:#16283D;}
+    .inv-info-table tr:last-child td:first-child{width:36%;}
+    .inv-info-table tr:last-child td:last-child{width:64%;}
+
+    .inv-declaration{font-size:11.5px;line-height:1.85;margin:12px 0 8px;text-align:justify;background:#FAFAF7;border:1px solid #EDE4D3;border-radius:8px;padding:12px 14px;}
+    .inv-declaration .label{display:block;font-weight:700;color:#16283D;margin-bottom:5px;font-size:12px;}
+
+    .inv-sign-row{display:flex;gap:24px;margin-top:30px;}
+    .inv-sign-box{flex:1;text-align:center;font-size:11.5px;color:#444;}
+    .inv-sign-box .line{border-top:1px solid #333;margin-top:34px;padding-top:6px;}
+
+    .inv-buyer-cell{overflow:hidden;}
+    .inv-id-photo{float:left;width:150px;margin:0 12px 6px 0;text-align:center;font-size:9px;color:#6B7280;}
+    .inv-id-photo img{width:150px;height:105px;object-fit:cover;border:1px solid #D8DCE2;border-radius:6px;display:block;}
+    .inv-id-placeholder{width:150px;height:100px;border:1px dashed #C7CBD1;border-radius:6px;}
+
+    .inv-footer{margin-top:14px;padding-top:8px;border-top:1px solid #E5E8EA;font-size:9.5px;color:#9AA1A9;text-align:center;}
+
+    /* Container shipping manifest */
+    .manifest-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #16283D;padding-bottom:12px;margin-bottom:16px;}
+    .manifest-title{font-size:17px;font-weight:800;color:#16283D;}
+    .manifest-meta{font-size:11.5px;color:#444;text-align:left;direction:ltr;line-height:1.8;}
+    table.manifest-table{width:100%;border-collapse:collapse;font-size:10px;table-layout:fixed;word-wrap:break-word;}
+    table.manifest-table th{background:#16283D;color:#fff;padding:6px 5px;text-align:center;font-size:9px;}
+    table.manifest-table td{border:1px solid #D8DCE2;padding:6px 5px;text-align:center;word-break:break-word;}
+    table.manifest-table tr:nth-child(even) td{background:#FAFBFC;}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div>
+      <h1>دفتر السيارات</h1>
+      <div class="sub">تتبّع الزبائن والشحن والأرباح</div>
+    </div>
+    <button class="btn btn-gold" id="mainAddBtn">+ زبون جديد</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="stats" id="stats"></div>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin:0 0 14px;flex-wrap:wrap;">
+    <button class="btn btn-ghost btn-sm" id="settingsBtn">⚙ إعدادات المكتب</button>
+    <button class="btn btn-ghost btn-sm" id="exportBtn">⬇ نسخة احتياطية</button>
+    <button class="btn btn-ghost btn-sm" id="importBtn">⬆ استيراد نسخة</button>
+    <input type="file" id="importFile" accept=".json" style="display:none;">
+    <input type="file" id="idPhotoInput" accept="image/*" style="display:none;">
+  </div>
+  <div class="tabbar" id="viewTabs">
+    <button class="tab-btn active" data-view="customers">🚗 الزبائن</button>
+    <button class="tab-btn" data-view="containers">📦 الحاويات</button>
+  </div>
+  <div class="toolbar">
+    <input type="text" class="search" id="searchBox" placeholder="ابحث بالاسم أو الهاتف...">
+    <button class="btn btn-ghost btn-sm" id="archiveToggleBtn">📦 الأرشيف</button>
+  </div>
+  <div id="customerList"></div>
+  <div id="containerList" style="display:none;"></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modalBody"></div>
+</div>
+
+<div id="printArea"></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'carbroker_customers_v1';
+const SETTINGS_KEY = 'carbroker_settings_v1';
+const CONTAINERS_KEY = 'carbroker_containers_v1';
+let customers = [];
+let containers = [];
+let settings = {};
+let openCustomerId = null;
+let viewMode = 'customers'; // 'customers' | 'containers'
+let customerArchiveView = false;
+let containerArchiveView = false;
+
+function uid(){ return 'id' + Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
+
+function fmt(n, suffix){
+  n = Number(n) || 0;
+  const rounded = Math.round(n);
+  return rounded.toLocaleString('en-US') + ' ' + suffix;
+}
+
+function defaultSettings(){
+  return {businessName:'', tagline:'', brokerName:'', brokerDoc:'', address:'', phone:'', regNumber:'', logo:'', nextInvoiceNumber:80};
+}
+
+function loadSettings(){
+  try{
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    settings = raw ? {...defaultSettings(), ...JSON.parse(raw)} : defaultSettings();
+  }catch(e){
+    settings = defaultSettings();
+  }
+}
+
+function saveSettings(){
+  try{
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  }catch(e){
+    showToast('تعذّر حفظ الإعدادات على هذا الجهاز');
+  }
+}
+
+function compressImage(file, maxDim, quality){
+  maxDim = maxDim || 900;
+  quality = quality || 0.72;
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if(w > maxDim || h > maxDim){
+          if(w > h){ h = Math.round(h * maxDim / w); w = maxDim; }
+          else { w = Math.round(w * maxDim / h); h = maxDim; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    customers = raw ? JSON.parse(raw) : [];
+  }catch(e){
+    customers = [];
+  }
+  customers.forEach(c => { migrateCustomer(c); (c.cars||[]).forEach(migrateCar); });
+  render();
+}
+
+async function saveData(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(customers));
+  }catch(e){
+    showToast('تعذّر حفظ البيانات على هذا الجهاز');
+  }
+}
+
+async function loadContainers(){
+  try{
+    const raw = localStorage.getItem(CONTAINERS_KEY);
+    containers = raw ? JSON.parse(raw) : [];
+  }catch(e){
+    containers = [];
+  }
+  containers.forEach(migrateContainer);
+}
+
+async function saveContainers(){
+  try{
+    localStorage.setItem(CONTAINERS_KEY, JSON.stringify(containers));
+  }catch(e){
+    showToast('تعذّر حفظ بيانات الحاويات على هذا الجهاز');
+  }
+}
+
+function migrateCustomer(c){
+  if(c.archived === undefined) c.archived = false;
+  if(c.nin === undefined) c.nin = '';
+  if(c.postalCode === undefined) c.postalCode = '';
+  if(c.passportCode === undefined) c.passportCode = '';
+  if(c.email === undefined) c.email = '';
+}
+
+function migrateContainer(k){
+  if(k.archived === undefined) k.archived = false;
+  if(k.paid === undefined) k.paid = false;
+  if(!Array.isArray(k.carRefs)){
+    // Migrate from the old customer-level linking to per-car linking.
+    // Only auto-map customers who have exactly one car (unambiguous);
+    // for customers with several cars, leave unassigned so the user
+    // can pick the right car(s) explicitly when editing the container.
+    const oldIds = Array.isArray(k.customerIds) ? k.customerIds : [];
+    k.carRefs = [];
+    oldIds.forEach(cid => {
+      const c = customers.find(x=>x.id===cid);
+      if(c && Array.isArray(c.cars) && c.cars.length === 1){
+        k.carRefs.push({customerId:cid, carId:c.cars[0].id});
+      }
+    });
+    delete k.customerIds;
+  }
+}
+
+function exportBackup(){
+  const payload = {customers, containers};
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const d = new Date();
+  const stamp = d.toISOString().slice(0,10);
+  a.href = url;
+  a.download = `نسخة-احتياطية-دفتر-السيارات-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('تم تنزيل النسخة الاحتياطية');
+}
+
+function importBackup(file){
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try{
+      const data = JSON.parse(e.target.result);
+      let newCustomers, newContainers;
+      if(Array.isArray(data)){
+        newCustomers = data;
+        newContainers = [];
+      } else if(data && Array.isArray(data.customers)){
+        newCustomers = data.customers;
+        newContainers = Array.isArray(data.containers) ? data.containers : [];
+      } else {
+        throw new Error('bad format');
+      }
+      if(!confirm('سيتم استبدال كل البيانات الحالية بالنسخة الاحتياطية. متابعة؟')) return;
+      customers = newCustomers;
+      containers = newContainers;
+      customers.forEach(c => { migrateCustomer(c); (c.cars||[]).forEach(migrateCar); });
+      containers.forEach(migrateContainer);
+      await saveData();
+      await saveContainers();
+      render();
+      updateArchiveToggleLabel();
+      showToast('تم استيراد النسخة الاحتياطية');
+    }catch(err){
+      showToast('الملف غير صالح كنسخة احتياطية');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+function sumPayments(arr){
+  return (arr||[]).reduce((s,p)=>s+(Number(p.amount)||0),0);
+}
+
+function calcCar(car){
+  const payments = car.payments || {customer:[],seller:[],shipper:[],customs:[]};
+  const paidByCustomer = sumPayments(payments.customer);
+  const paidToSeller = sumPayments(payments.seller);
+  const paidToShipper = sumPayments(payments.shipper);
+  const paidCustomsAmt = sumPayments(payments.customs);
+
+  const carRate = Number(car.carExchangeRate)||0;
+  const shippingRate = Number(car.shippingExchangeRate)||0;
+  const customerPriceDZD = Number(car.customerPriceDZD)||0;
+  const remainingCustomerDZD = customerPriceDZD - paidByCustomer;
+  const carCostActual = Number(car.carCostActual)||0;
+  const shippingCostActual = Number(car.shippingCostActual)||0;
+  const remainingSellerUSD = carCostActual - paidToSeller;
+  const remainingShipperUSD = shippingCostActual - paidToShipper;
+  const includesCustoms = !!car.includesCustoms;
+  const customsCostActual = includesCustoms ? (Number(car.customsCostActual)||0) : 0;
+  const paidCustoms = includesCustoms ? paidCustomsAmt : 0;
+  const remainingCustomsDZD = customsCostActual - paidCustoms;
+  const totalCostDZD = (carCostActual * carRate) + (shippingCostActual * shippingRate) + customsCostActual;
+  const profitDZD = customerPriceDZD - totalCostDZD;
+  return {customerPriceDZD, paidByCustomer, remainingCustomerDZD, carCostActual, shippingCostActual, paidToSeller, paidToShipper, remainingSellerUSD, remainingShipperUSD, includesCustoms, customsCostActual, paidCustoms, remainingCustomsDZD, totalCostDZD, profitDZD, carRate, shippingRate};
+}
+
+function migrateCar(car){
+  if(!car.payments){
+    const ts = car.dateAdded || '';
+    car.payments = {
+      customer: car.paidByCustomer ? [{amount:Number(car.paidByCustomer), datetime: ts}] : [],
+      seller: car.paidToSeller ? [{amount:Number(car.paidToSeller), datetime: ts}] : [],
+      shipper: car.paidToShipper ? [{amount:Number(car.paidToShipper), datetime: ts}] : [],
+      customs: car.paidCustoms ? [{amount:Number(car.paidCustoms), datetime: ts}] : []
+    };
+  }
+  if(car.makeType === undefined) car.makeType = '';
+  if(car.category === undefined) car.category = '';
+  if(car.carExchangeRate === undefined || car.shippingExchangeRate === undefined){
+    const oldRate = Number(car.exchangeRate)||0;
+    if(car.carExchangeRate === undefined) car.carExchangeRate = oldRate;
+    if(car.shippingExchangeRate === undefined) car.shippingExchangeRate = oldRate;
+  }
+}
+
+function renderStats(){
+  let totalProfit = 0, totalDueIn = 0, totalDueOutUSD = 0, totalDueCustomsDZD = 0;
+  customers.forEach(c => c.cars.forEach(car => {
+    const r = calcCar(car);
+    totalProfit += r.profitDZD;
+    if(!c.archived){
+      totalDueIn += r.remainingCustomerDZD;
+      totalDueOutUSD += r.remainingSellerUSD + r.remainingShipperUSD;
+      if(r.includesCustoms) totalDueCustomsDZD += r.remainingCustomsDZD;
+    }
+  }));
+  document.getElementById('stats').innerHTML = `
+    <div class="stat profit"><div class="num">${fmt(totalProfit,'دج')}</div><div class="lbl">الفائدة الإجمالية</div></div>
+    <div class="stat due-in"><div class="num">${fmt(totalDueIn,'دج')}</div><div class="lbl">متبقي من الزبائن</div></div>
+    <div class="stat due-out"><div class="num">${fmt(totalDueOutUSD,'$')}</div><div class="lbl">متبقي للموردين</div></div>
+    <div class="stat due-out"><div class="num">${fmt(totalDueCustomsDZD,'دج')}</div><div class="lbl">متبقي للجمركة</div></div>
+  `;
+}
+
+function customerTotals(c){
+  let dueIn = 0, dueOut = 0, dueCustoms = 0;
+  c.cars.forEach(car=>{
+    const r = calcCar(car);
+    dueIn += r.remainingCustomerDZD;
+    dueOut += r.remainingSellerUSD + r.remainingShipperUSD;
+    if(r.includesCustoms) dueCustoms += r.remainingCustomsDZD;
+  });
+  return {dueIn, dueOut, dueCustoms};
+}
+
+function renderList(){
+  const q = document.getElementById('searchBox').value.trim().toLowerCase();
+  const list = document.getElementById('customerList');
+  const pool = customers.filter(c => !!c.archived === customerArchiveView);
+  const filtered = pool.filter(c =>
+    !q || c.name.toLowerCase().includes(q) || (c.phone||'').includes(q)
+  );
+
+  if(pool.length === 0){
+    list.innerHTML = customerArchiveView
+      ? `<div class="empty"><div class="big">📦</div>لا يوجد زبائن في الأرشيف</div>`
+      : `<div class="empty"><div class="big">🚗</div>لا يوجد زبائن بعد<br>اضغط "زبون جديد" للبدء</div>`;
+    return;
+  }
+  if(filtered.length === 0){
+    list.innerHTML = `<div class="empty">لا توجد نتائج مطابقة</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(c => {
+    const {dueIn, dueOut, dueCustoms} = customerTotals(c);
+    const isOpen = openCustomerId === c.id;
+    const fullyPaid = dueIn <= 0 && dueOut <= 0 && dueCustoms <= 0;
+    return `
+    <div class="customer ${isOpen?'open':''}" data-id="${c.id}">
+      <div class="customer-head" data-toggle="${c.id}">
+        <div class="info">
+          <h3>${escapeHtml(c.name)}</h3>
+          <div class="meta">${escapeHtml(c.location||'')}${c.location&&c.phone?' · ':''}${escapeHtml(c.phone||'')} · ${c.cars.length} ${c.cars.length===1?'سيارة':'سيارات'}</div>
+        </div>
+        <div class="right">
+          ${c.archived ? '<span class="badge archived">مؤرشف</span>' : `<span class="badge ${fullyPaid?'ok':'due'}">${fullyPaid?'مسدد بالكامل':'يوجد مستحقات'}</span>`}
+          <span class="chev">▾</span>
+        </div>
+      </div>
+      <div class="cars">
+        <div class="id-photo-row">
+          ${c.idPhoto ? `<img src="${c.idPhoto}" class="id-thumb">` : `<div class="id-placeholder">لا توجد صورة</div>`}
+          ${!c.archived ? `<button class="btn btn-ghost btn-sm" data-upload-id="${c.id}">📷 ${c.idPhoto ? 'تغيير صورة الهوية' : 'رفع صورة الهوية'}</button>` : ''}
+          ${c.idPhoto && !c.archived ? `<button class="btn btn-danger-ghost btn-sm" data-remove-id="${c.id}">حذف الصورة</button>` : ''}
+        </div>
+        ${(c.nin||c.postalCode||c.passportCode||c.email) ? `
+        <div class="customer-info-grid">
+          ${c.nin ? `<div><span class="k">NIN</span><span class="v">${escapeHtml(c.nin)}</span></div>` : ''}
+          ${c.postalCode ? `<div><span class="k">Code Postal</span><span class="v">${escapeHtml(c.postalCode)}</span></div>` : ''}
+          ${c.passportCode ? `<div><span class="k">Passport</span><span class="v">${escapeHtml(c.passportCode)}</span></div>` : ''}
+          ${c.email ? `<div><span class="k">Email</span><span class="v">${escapeHtml(c.email)}</span></div>` : ''}
+        </div>
+        ` : ''}
+        ${c.cars.map(car => renderCar(c.id, car, c.archived)).join('')}
+        ${!c.archived ? `<button class="btn btn-ghost btn-block add-car-btn" data-add-car="${c.id}">+ إضافة سيارة لهذا الزبون</button>` : ''}
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+          ${c.archived ? `
+            <button class="btn btn-ghost btn-sm" style="flex:1" data-restore-customer="${c.id}">↩ استعادة من الأرشيف</button>
+            <button class="btn btn-danger-ghost btn-sm" style="flex:1" data-delete-customer="${c.id}">حذف نهائي</button>
+          ` : `
+            <button class="btn btn-ghost btn-sm" style="flex:1" data-edit-customer="${c.id}">تعديل بيانات الزبون</button>
+            <button class="btn btn-gold btn-sm" style="flex:1" data-archive-customer="${c.id}">📦 أرشفة الزبون</button>
+            <button class="btn btn-danger-ghost btn-sm" style="flex:1" data-delete-customer="${c.id}">حذف الزبون</button>
+          `}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderCar(customerId, car, archived){
+  const r = calcCar(car);
+  const titleBits = [car.makeType, car.category].filter(Boolean).join(' - ');
+  return `
+  <div class="car" data-car="${car.id}">
+    <div class="car-top">
+      <span class="profit-tag">${titleBits ? escapeHtml(titleBits)+' · ' : ''}الفائدة: ${fmt(r.profitDZD,'دج')}</span>
+      <span class="date">${car.dateAdded||''}</span>
+    </div>
+    <div class="rows">
+      <div class="row-item"><div class="k">السعر الإجمالي للزبون (يشمل الشحن)</div><div class="v">${fmt(r.customerPriceDZD,'دج')}</div></div>
+      <div class="row-item"><div class="k">دفع الزبون</div><div class="v green">${fmt(r.paidByCustomer,'دج')}</div></div>
+      <div class="row-item"><div class="k">المتبقي على الزبون</div><div class="v ${r.remainingCustomerDZD>0?'coral':'green'}">${fmt(r.remainingCustomerDZD,'دج')}</div></div>
+      <div class="row-item"><div class="k">تكلفة السيارة الفعلية</div><div class="v">${fmt(r.carCostActual,'$')}</div></div>
+      <div class="row-item"><div class="k">سعر صرف السيارة</div><div class="v">${fmt(r.carRate,'دج/$')}</div></div>
+      <div class="row-item"><div class="k">المتبقي للبائع الصيني</div><div class="v ${r.remainingSellerUSD>0?'coral':'green'}">${fmt(r.remainingSellerUSD,'$')}</div></div>
+      <div class="row-item"><div class="k">تكلفة الشحن الفعلية</div><div class="v">${fmt(r.shippingCostActual,'$')}</div></div>
+      <div class="row-item"><div class="k">سعر صرف الشحن</div><div class="v">${fmt(r.shippingRate,'دج/$')}</div></div>
+      <div class="row-item"><div class="k">المتبقي لشركة الشحن</div><div class="v ${r.remainingShipperUSD>0?'coral':'green'}">${fmt(r.remainingShipperUSD,'$')}</div></div>
+      ${r.includesCustoms ? `
+      <div class="row-item"><div class="k">سعر الجمركة المتوقع</div><div class="v">${fmt(r.customsCostActual,'دج')}</div></div>
+      <div class="row-item"><div class="k">المدفوع من الجمركة</div><div class="v green">${fmt(r.paidCustoms,'دج')}</div></div>
+      <div class="row-item"><div class="k">المتبقي للجمركة</div><div class="v ${r.remainingCustomsDZD>0?'coral':'green'}">${fmt(r.remainingCustomsDZD,'دج')}</div></div>
+      ` : ''}
+    </div>
+    ${car.notes ? `<div class="notes">${escapeHtml(car.notes)}</div>` : ''}
+    ${archived ? '' : `
+    <div class="car-actions">
+      <button class="btn btn-ghost btn-sm" data-add-payment="${customerId}|${car.id}|customer">+ دفعة من الزبون</button>
+      <button class="btn btn-ghost btn-sm" data-add-payment="${customerId}|${car.id}|seller">+ دفعة للبائع</button>
+      <button class="btn btn-ghost btn-sm" data-add-payment="${customerId}|${car.id}|shipper">+ دفعة للشحن</button>
+      ${r.includesCustoms ? `<button class="btn btn-ghost btn-sm" data-add-payment="${customerId}|${car.id}|customs">+ دفعة للجمركة</button>` : ''}
+      <button class="btn btn-ghost btn-sm" data-history="${customerId}|${car.id}">سجل الدفعات</button>
+      <button class="btn btn-gold btn-sm" data-print="${customerId}|${car.id}">🖨 طباعة الفاتورة</button>
+      <button class="btn btn-ghost btn-sm" data-edit-car="${customerId}|${car.id}">تعديل</button>
+      <button class="btn btn-danger-ghost btn-sm" data-delete-car="${customerId}|${car.id}">حذف</button>
+    </div>
+    `}
+  </div>`;
+}
+
+function escapeHtml(s){
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+function render(){
+  renderStats();
+  if(viewMode === 'containers') renderContainerList();
+  else renderList();
+}
+
+function updateArchiveToggleLabel(){
+  const btn = document.getElementById('archiveToggleBtn');
+  if(!btn) return;
+  if(viewMode === 'customers'){
+    const n = customers.filter(c=>c.archived).length;
+    btn.textContent = customerArchiveView ? '↩ عرض النشطين' : `📦 الأرشيف (${n})`;
+  } else {
+    const n = containers.filter(k=>k.archived).length;
+    btn.textContent = containerArchiveView ? '↩ عرض النشطة' : `📦 الأرشيف (${n})`;
+  }
+}
+
+// ---------- Modal helpers ----------
+function openModal(html){
+  document.getElementById('modalBody').innerHTML = `<button class="close-x" id="closeModal">✕</button>` + html;
+  document.getElementById('overlay').classList.add('show');
+}
+function closeModal(){
+  document.getElementById('overlay').classList.remove('show');
+}
+
+function toMillionNote(dzd){
+  const m = Math.round((Number(dzd)||0) / 10000);
+  return `${fmt(dzd,'دج')} ( ${m} مليون )`;
+}
+
+async function printInvoice(custId, carId){
+  const c = customers.find(x=>x.id===custId);
+  const car = c.cars.find(x=>x.id===carId);
+  const r = calcCar(car);
+
+  if(!car.invoiceNumber){
+    car.invoiceNumber = settings.nextInvoiceNumber || 80;
+    settings.nextInvoiceNumber = car.invoiceNumber + 1;
+    saveSettings();
+    await saveData();
+  }
+
+  const invNum = String(car.invoiceNumber).padStart(3,'0');
+  const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+  const itemDesc = [car.makeType, car.category].filter(Boolean).join(' ') || '-';
+  const customsPhrase = r.includesCustoms ? 'يشمل مصاريف الجمركة' : 'لا يشمل مصاريف الجمركة';
+
+  const custDetails = [
+    c.location ? `<b>Address:</b> ${escapeHtml(c.location)}` : '',
+    c.phone ? `<b>Phone:</b> ${escapeHtml(c.phone)}` : '',
+    c.email ? `<b>Email:</b> ${escapeHtml(c.email)}` : '',
+    c.nin ? `<b>NIN:</b> ${escapeHtml(c.nin)}` : '',
+    c.postalCode ? `<b>Code Postal:</b> ${escapeHtml(c.postalCode)}` : '',
+    c.passportCode ? `<b>Passport:</b> ${escapeHtml(c.passportCode)}` : ''
+  ].filter(Boolean).join('<br>');
+
+  const idPhotoHtml = c.idPhoto
+    ? `<div class="inv-id-photo"><img src="${c.idPhoto}"><div>بطاقة تعريف/جواز سفر الزبون</div></div>`
+    : `<div class="inv-id-photo"><div class="inv-id-placeholder"></div><div>بطاقة تعريف/جواز سفر الزبون</div></div>`;
+
+  const html = `
+    <div class="doc-frame">
+      <div class="doc-topbar"></div>
+      <div class="inv-header">
+        <div>
+          ${settings.logo ? `<img src="${settings.logo}"><br>` : ''}
+          <div class="inv-office">${escapeHtml(settings.businessName||'')}</div>
+          <div class="inv-tagline">${escapeHtml(settings.tagline||'')}</div>
+        </div>
+        <div class="inv-meta">
+          ${settings.regNumber ? `<b>Reg N°:</b> ${escapeHtml(settings.regNumber)}<br>` : ''}
+          ${settings.address ? `<b>Address:</b> ${escapeHtml(settings.address)}<br>` : ''}
+          ${settings.phone ? `<b>Phone:</b> ${escapeHtml(settings.phone)}` : ''}
+        </div>
+      </div>
+      <div class="inv-title">
+        <span class="main">فاتورة و تصريح شرفي</span>
+        <span class="sub"></span>
+      </div>
+      <table class="inv-table inv-info-table">
+        <tr><td><b>فاتورة رقم :</b> ${invNum}</td><td><b>التاريخ :</b> ${today}</td></tr>
+        <tr>
+          <td><b>الوسيط :</b> ${escapeHtml(settings.brokerName||'')}<br><b>مكتب :</b> ${escapeHtml(settings.businessName||'')}<br><b>العنوان :</b> ${escapeHtml(settings.address||'')}</td>
+          <td>
+            <div class="inv-buyer-cell">
+              <div class="inv-buyer-text"><b>المشتري :</b> ${escapeHtml(c.name)}${custDetails ? '<br>'+custDetails : ''}</div>
+              ${idPhotoHtml}
+            </div>
+          </td>
+        </tr>
+      </table>
+      <div class="inv-section-label">تفاصيل السيارة</div>
+      <table class="inv-table">
+        <tr><th>وصف السلعة</th><th>الحالة</th><th>الكمية</th><th>سعر الوحدة</th><th>السعر الاجمالي</th></tr>
+        <tr><td>${escapeHtml(itemDesc)}</td><td>جديدة</td><td>01</td><td>${fmt(r.customerPriceDZD,'دج')}</td><td>${fmt(r.customerPriceDZD,'دج')}</td></tr>
+        <tr><td colspan="3"></td><td colspan="2" style="text-align:center;">السعر الاجمالي: ${fmt(r.customerPriceDZD,'دج')}</td></tr>
+        <tr><td colspan="3"></td><td colspan="2" style="text-align:center;">المبلغ المدفوع: ${toMillionNote(r.paidByCustomer)}</td></tr>
+        <tr><td colspan="3"></td><td colspan="2" style="text-align:center;">المبلغ المتبقي: ${toMillionNote(r.remainingCustomerDZD)}</td></tr>
+      </table>
+      <div class="inv-declaration">
+        <span class="label">تصريح شرفي</span>
+        أنا الممضي أسفله السيد/السيدة ${escapeHtml(settings.brokerName||'')}${settings.brokerDoc ? `، الحامل لجواز سفر/بطاقة تعريف رقم ${escapeHtml(settings.brokerDoc)}` : ''}، صاحب مكتب ${escapeHtml(settings.businessName||'')}${settings.address ? `، الكائن بـ${escapeHtml(settings.address)}` : ''}،
+        أصرّح تصريحًا شرفيًا أني استلمت المبلغ المبين أعلاه من الزبون ${escapeHtml(c.name)}${custDetails ? ` (${[c.location?`Address: ${escapeHtml(c.location)}`:'', c.phone?`Phone: ${escapeHtml(c.phone)}`:'', c.nin?`NIN: ${escapeHtml(c.nin)}`:'', c.passportCode?`Passport: ${escapeHtml(c.passportCode)}`:''].filter(Boolean).join(' - ')})` : ''}،
+        وذلك للوساطة لشراء وشحن السيارة المبينة في الفاتورة من الصين، في الآجال المتفق عليها، علمًا أن المبلغ ${customsPhrase}.
+        حرر هذا التصريح للإدلاء به عند الاقتضاء.
+      </div>
+      <div class="inv-sign-row">
+        <div class="inv-sign-box">إمضاء الزبون<div class="line"></div></div>
+        <div class="inv-sign-box">ختم و إمضاء الوسيط<div class="line"></div></div>
+      </div>
+      <div class="inv-footer">${escapeHtml(settings.businessName||'')}${settings.phone ? ' · '+escapeHtml(settings.phone) : ''}</div>
+    </div>
+  `;
+  document.getElementById('printArea').innerHTML = html;
+  setTimeout(() => window.print(), 50);
+}
+
+function printContainerManifest(containerId){
+  const k = containers.find(x=>x.id===containerId);
+  if(!k) return;
+  const today = new Date().toLocaleDateString('en-CA');
+  const rows = (k.carRefs||[]).map(r => {
+    const c = customers.find(x=>x.id===r.customerId);
+    if(!c) return null;
+    const car = (c.cars||[]).find(x=>x.id===r.carId);
+    const carLabel = car ? [car.makeType, car.category].filter(Boolean).join(' ') : '-';
+    return {
+      nin: c.nin||'-',
+      name: c.name||'-',
+      address: c.location||'-',
+      postalCode: c.postalCode||'-',
+      passportCode: c.passportCode||'-',
+      phone: c.phone||'-',
+      email: c.email||'-',
+      carLabel: carLabel||'-'
+    };
+  }).filter(Boolean);
+
+  const rowsHtml = rows.length ? rows.map(row => `
+    <tr>
+      <td style="direction:ltr;">${escapeHtml(row.nin)}</td>
+      <td>${escapeHtml(row.name)}</td>
+      <td>${escapeHtml(row.address)}</td>
+      <td style="direction:ltr;">${escapeHtml(row.postalCode)}</td>
+      <td style="direction:ltr;">${escapeHtml(row.passportCode)}</td>
+      <td style="direction:ltr;">${escapeHtml(row.phone)}</td>
+      <td style="direction:ltr;">${escapeHtml(row.email)}</td>
+      <td>${escapeHtml(row.carLabel)}</td>
+    </tr>
+  `).join('') : `<tr><td colspan="8">لا توجد سيارات مرتبطة بهذه الحاوية</td></tr>`;
+
+  const html = `
+    <div class="doc-frame manifest-wide">
+      <div class="doc-topbar"></div>
+      <div class="manifest-header">
+        <div>
+          ${settings.logo ? `<img src="${settings.logo}" style="max-width:80px;max-height:64px;"><br>` : ''}
+          <div class="manifest-title">Customer Information - معلومات الزبائن</div>
+          <div class="inv-tagline">${escapeHtml(settings.businessName||'')}</div>
+        </div>
+        <div class="manifest-meta">
+          <b>Container N°:</b> ${escapeHtml(k.number||'-')}<br>
+          ${k.expectedDate ? `<b>ETA:</b> ${escapeHtml(k.expectedDate)}<br>` : ''}
+          <b>Date:</b> ${today}
+        </div>
+      </div>
+      <table class="manifest-table">
+        <tr>
+          <th>NIN</th><th>FULL NAME</th><th>ADRESS</th><th>CODE POSTAL</th>
+          <th>PASSPORT CODE</th><th>PHONE N°</th><th>EMAIL</th><th>CAR NAME AND COLOR</th>
+        </tr>
+        ${rowsHtml}
+      </table>
+      <div class="inv-footer">${escapeHtml(settings.businessName||'')}${settings.phone ? ' · '+escapeHtml(settings.phone) : ''}</div>
+    </div>
+  `;
+  document.getElementById('printArea').innerHTML = html;
+  setTimeout(() => window.print(), 50);
+}
+
+function openHistoryModal(custId, carId){
+  const c = customers.find(x=>x.id===custId);
+  const car = c.cars.find(x=>x.id===carId);
+  const typeLabels = {customer:'من الزبون', seller:'للبائع الصيني', shipper:'لشركة الشحن', customs:'للجمركة'};
+  const typeCurrency = {customer:'دج', seller:'$', shipper:'$', customs:'دج'};
+  let rows = [];
+  ['customer','seller','shipper','customs'].forEach(type => {
+    (car.payments[type]||[]).forEach((p, idx) => {
+      rows.push({type, idx, amount:p.amount, datetime:p.datetime});
+    });
+  });
+  rows.sort((a,b) => (b.datetime||'').localeCompare(a.datetime||''));
+
+  const rowsHtml = rows.length ? rows.map(row => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div>
+        <div style="font-size:13.5px;font-weight:600;">${typeLabels[row.type]} — ${fmt(row.amount, typeCurrency[row.type])}</div>
+        <div style="font-size:11.5px;color:var(--muted);">${row.datetime||'بدون تاريخ'}</div>
+      </div>
+      <button class="btn btn-danger-ghost btn-sm" data-delete-payment="${custId}|${carId}|${row.type}|${row.idx}">حذف</button>
+    </div>
+  `).join('') : `<p style="color:var(--muted);">لا توجد دفعات مسجلة بعد</p>`;
+
+  openModal(`
+    <h2>سجل الدفعات</h2>
+    ${rowsHtml}
+  `);
+}
+
+function settingsModalHtml(){
+  const s = settings;
+  return `
+    <h2>إعدادات المكتب</h2>
+    <p style="font-size:12px;color:var(--muted);margin-top:-8px;">تظهر هذه المعلومات في كل فاتورة تطبعها</p>
+    <div class="field"><label>اسم المكتب</label><input id="s_businessName" value="${escapeHtml(s.businessName)}" placeholder="مثال: AutoMoto Nabil"></div>
+    <div class="field"><label>الوصف (اختياري)</label><input id="s_tagline" value="${escapeHtml(s.tagline)}" placeholder="مثال: وساطة شراء سيارات باحترافية"></div>
+    <div class="field"><label>اسم الوسيط (اسمك)</label><input id="s_brokerName" value="${escapeHtml(s.brokerName)}"></div>
+    <div class="field"><label>رقم جواز السفر / بطاقة التعريف الخاص بك</label><input id="s_brokerDoc" value="${escapeHtml(s.brokerDoc)}"></div>
+    <div class="field"><label>العنوان</label><input id="s_address" value="${escapeHtml(s.address)}"></div>
+    <div class="field"><label>رقم(أرقام) الهاتف</label><input id="s_phone" value="${escapeHtml(s.phone)}"></div>
+    <div class="field"><label>رقم التسجيل</label><input id="s_regNumber" value="${escapeHtml(s.regNumber)}"></div>
+    <div class="field">
+      <label>شعار المكتب (صورة)</label>
+      <input type="file" id="s_logoFile" accept="image/*">
+      ${s.logo ? `<img src="${s.logo}" class="logo-preview">` : ''}
+    </div>
+    <div class="field"><label>رقم الفاتورة القادمة</label><input type="number" id="s_nextInvoice" value="${s.nextInvoiceNumber}"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-block" id="saveSettings">حفظ الإعدادات</button>
+    </div>
+  `;
+}
+
+function customerFormHtml(existing){
+  const c = existing || {name:'',location:'',phone:'',nin:'',postalCode:'',passportCode:'',email:''};
+  return `
+    <h2>${existing?'تعديل بيانات الزبون':'زبون جديد'}</h2>
+    <div class="field"><label>Full Name</label><input id="f_name" value="${escapeHtml(c.name)}" placeholder="مثال: أحمد بن علي"></div>
+    <div class="field"><label>Address</label><input id="f_location" value="${escapeHtml(c.location)}" placeholder="مثال: وهران"></div>
+    <div class="field-row">
+      <div class="field"><label>NIN</label><input id="f_nin" value="${escapeHtml(c.nin||'')}" placeholder="رقم التعريف الوطني"></div>
+      <div class="field"><label>Code Postal</label><input id="f_postalCode" value="${escapeHtml(c.postalCode||'')}" placeholder="مثال: 16000"></div>
+    </div>
+    <div class="field"><label>Passport Code</label><input id="f_passportCode" value="${escapeHtml(c.passportCode||'')}" placeholder="رقم جواز السفر"></div>
+    <div class="field-row">
+      <div class="field"><label>Phone N°</label><input id="f_phone" value="${escapeHtml(c.phone)}" placeholder="0555 xx xx xx"></div>
+      <div class="field"><label>Email</label><input type="email" id="f_email" value="${escapeHtml(c.email||'')}" placeholder="example@mail.com"></div>
+    </div>
+    ${!existing ? `
+    <div class="section-title">السيارة الأولى (اختياري، يمكن إضافتها لاحقًا)</div>
+    ${carFormFields()}
+    ` : ''}
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-block" id="saveCustomer">${existing?'حفظ التعديلات':'إضافة الزبون'}</button>
+    </div>
+  `;
+}
+
+function carFormFields(existing){
+  const car = existing || {};
+  const v = k => existing ? (car[k]===undefined||car[k]===null?'':car[k]) : '';
+  const includesCustoms = !!car.includesCustoms;
+  const isNew = !existing;
+  return `
+    <div class="field-row">
+      <div class="field">
+        <label>Car Type</label>
+        <input list="dl_makeType" id="f_makeType" value="${escapeHtml(v('makeType'))}" placeholder="مثال: تويوتا">
+        <datalist id="dl_makeType">${getSuggestions('makeType').map(x=>`<option value="${escapeHtml(x)}">`).join('')}</datalist>
+      </div>
+      <div class="field">
+        <label>Category</label>
+        <input list="dl_category" id="f_category" value="${escapeHtml(v('category'))}" placeholder="مثال: كورولا 2023">
+        <datalist id="dl_category">${getSuggestions('category').map(x=>`<option value="${escapeHtml(x)}">`).join('')}</datalist>
+      </div>
+    </div>
+    <div class="field"><label>السعر الإجمالي المتفق عليه مع الزبون - دج (يشمل السيارة والشحن)</label><input type="number" id="f_customerPriceDZD" value="${v('customerPriceDZD')}"></div>
+    <div class="field">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" id="f_includesCustoms" style="width:auto;" ${includesCustoms?'checked':''}>
+        السعر يشمل رسوم الجمركة
+      </label>
+    </div>
+    <div id="customsFields" style="display:${includesCustoms?'block':'none'}">
+      <div class="field-row">
+        <div class="field"><label>سعر الجمركة المتوقع (دج)</label><input type="number" id="f_customsCostActual" value="${v('customsCostActual')}"></div>
+        ${isNew ? `<div class="field"><label>دفعة جمركة أولى الآن (دج)</label><input type="number" id="f_initialCustoms" placeholder="0"></div>` : ''}
+      </div>
+    </div>
+    <div class="section-title">التكلفة الفعلية (ما تدفعه أنت)</div>
+    <div class="field-row">
+      <div class="field"><label>تكلفة السيارة الفعلية ($)</label><input type="number" id="f_carCostActual" value="${v('carCostActual')}"></div>
+      <div class="field"><label>سعر صرف السيارة (دج مقابل 1$)</label><input type="number" id="f_carExchangeRate" value="${v('carExchangeRate')}"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>تكلفة الشحن الفعلية ($)</label><input type="number" id="f_shippingCostActual" value="${v('shippingCostActual')}"></div>
+      <div class="field"><label>سعر صرف الشحن (دج مقابل 1$)</label><input type="number" id="f_shippingExchangeRate" value="${v('shippingExchangeRate')}"></div>
+    </div>
+    ${isNew ? `
+    <div class="section-title">دفعة أولى (اختياري، يمكن إضافتها لاحقًا)</div>
+    <div class="field"><label>دفعة من الزبون الآن (دج)</label><input type="number" id="f_initialCustomer" placeholder="0"></div>
+    <div class="field-row">
+      <div class="field"><label>دفعة للبائع الصيني الآن ($)</label><input type="number" id="f_initialSeller" placeholder="0"></div>
+      <div class="field"><label>دفعة لشركة الشحن الآن ($)</label><input type="number" id="f_initialShipper" placeholder="0"></div>
+    </div>
+    ` : ''}
+    <div class="field"><label>ملاحظات</label><textarea id="f_notes" rows="2">${escapeHtml(v('notes'))}</textarea></div>
+  `;
+}
+
+function readCarForm(){
+  const includesCustoms = document.getElementById('f_includesCustoms').checked;
+  const data = {
+    makeType: document.getElementById('f_makeType').value.trim(),
+    category: document.getElementById('f_category').value.trim(),
+    customerPriceDZD: parseFloat(document.getElementById('f_customerPriceDZD').value)||0,
+    includesCustoms,
+    customsCostActual: includesCustoms ? (parseFloat(document.getElementById('f_customsCostActual').value)||0) : 0,
+    carExchangeRate: parseFloat(document.getElementById('f_carExchangeRate').value)||0,
+    shippingExchangeRate: parseFloat(document.getElementById('f_shippingExchangeRate').value)||0,
+    carCostActual: parseFloat(document.getElementById('f_carCostActual').value)||0,
+    shippingCostActual: parseFloat(document.getElementById('f_shippingCostActual').value)||0,
+    notes: document.getElementById('f_notes').value.trim()
+  };
+
+  // Only present on the "new car" form - build initial payment history entries
+  const initCustomerEl = document.getElementById('f_initialCustomer');
+  if(initCustomerEl){
+    const ts = nowStr();
+    const payments = {customer:[], seller:[], shipper:[], customs:[]};
+    const iCustomer = parseFloat(initCustomerEl.value)||0;
+    const iSeller = parseFloat(document.getElementById('f_initialSeller').value)||0;
+    const iShipper = parseFloat(document.getElementById('f_initialShipper').value)||0;
+    if(iCustomer > 0) payments.customer.push({amount:iCustomer, datetime:ts});
+    if(iSeller > 0) payments.seller.push({amount:iSeller, datetime:ts});
+    if(iShipper > 0) payments.shipper.push({amount:iShipper, datetime:ts});
+    if(includesCustoms){
+      const customsEl = document.getElementById('f_initialCustoms');
+      const iCustoms = customsEl ? (parseFloat(customsEl.value)||0) : 0;
+      if(iCustoms > 0) payments.customs.push({amount:iCustoms, datetime:ts});
+    }
+    data.payments = payments;
+  }
+  return data;
+}
+
+function containerFormHtml(existing){
+  const k = existing || {number:'', price:'', expectedDate:'', notes:'', carRefs:[]};
+  const currentRefs = k.carRefs || [];
+  const currentKeySet = new Set(currentRefs.map(r => r.customerId+'|'+r.carId));
+  const assignedElsewhere = new Set();
+  containers.forEach(cont => {
+    if(existing && cont.id === existing.id) return;
+    (cont.carRefs||[]).forEach(r => assignedElsewhere.add(r.customerId+'|'+r.carId));
+  });
+  const options = [];
+  customers.filter(c=>!c.archived).forEach(c => {
+    (c.cars||[]).forEach(car => {
+      const key = c.id+'|'+car.id;
+      if(assignedElsewhere.has(key) && !currentKeySet.has(key)) return;
+      const label = [car.makeType, car.category].filter(Boolean).join(' - ') || 'سيارة بدون تفاصيل';
+      options.push({key, customerName:c.name, carLabel:label});
+    });
+  });
+  return `
+    <h2>${existing?'تعديل بيانات الحاوية':'حاوية جديدة'}</h2>
+    <div class="field"><label>رقم الحاوية</label><input id="f_containerNumber" value="${escapeHtml(k.number)}" placeholder="مثال: MSKU1234567"></div>
+    <div class="field"><label>ثمن الحاوية ($)</label><input type="number" id="f_containerPrice" value="${k.price||''}"></div>
+    <div class="field"><label>التاريخ المتوقع للوصول</label><input type="date" id="f_containerDate" value="${k.expectedDate||''}"></div>
+    <div class="field">
+      <label>السيارات في هذه الحاوية</label>
+      ${options.length === 0 ? '<p style="font-size:12.5px;color:var(--muted);">لا يوجد سيارات متاحة لإضافتها (كل السيارات موزّعة على حاويات أخرى بالفعل)</p>' : `
+      <div style="max-height:260px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;padding:8px 10px;">
+        ${options.map(o => `
+          <label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;font-size:14px;">
+            <input type="checkbox" class="f_containerCar" value="${o.key}" style="width:auto;" ${currentKeySet.has(o.key)?'checked':''}>
+            <span>${escapeHtml(o.customerName)} <span style="color:var(--muted);">— ${escapeHtml(o.carLabel)}</span></span>
+          </label>
+        `).join('')}
+      </div>
+      `}
+    </div>
+    <div class="field">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" id="f_containerPaid" style="width:auto;" ${k.paid?'checked':''}>
+        تم دفع ثمن الحاوية
+      </label>
+    </div>
+    <div class="field"><label>ملاحظات</label><textarea id="f_containerNotes" rows="2">${escapeHtml(k.notes||'')}</textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-block" id="saveContainer" ${existing?`data-editing="${existing.id}"`:''}>${existing?'حفظ التعديلات':'إضافة الحاوية'}</button>
+    </div>
+  `;
+}
+
+function readContainerForm(){
+  const checked = Array.from(document.querySelectorAll('.f_containerCar:checked')).map(el=>el.value);
+  const carRefs = checked.map(key => {
+    const [customerId, carId] = key.split('|');
+    return {customerId, carId};
+  });
+  return {
+    number: document.getElementById('f_containerNumber').value.trim(),
+    price: parseFloat(document.getElementById('f_containerPrice').value)||0,
+    expectedDate: document.getElementById('f_containerDate').value,
+    notes: document.getElementById('f_containerNotes').value.trim(),
+    paid: document.getElementById('f_containerPaid').checked,
+    carRefs: carRefs
+  };
+}
+
+function renderContainerList(){
+  const q = document.getElementById('searchBox').value.trim().toLowerCase();
+  const list = document.getElementById('containerList');
+  const pool = containers.filter(k => !!k.archived === containerArchiveView);
+  const filtered = pool.filter(k => !q || (k.number||'').toLowerCase().includes(q));
+
+  if(pool.length === 0){
+    list.innerHTML = containerArchiveView
+      ? `<div class="empty"><div class="big">📦</div>لا توجد حاويات في الأرشيف</div>`
+      : `<div class="empty"><div class="big">📦</div>لا توجد حاويات بعد<br>اضغط "حاوية جديدة" للبدء</div>`;
+    return;
+  }
+  if(filtered.length === 0){
+    list.innerHTML = `<div class="empty">لا توجد نتائج مطابقة</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(k => {
+    const names = (k.carRefs||[]).map(r => {
+      const c = customers.find(x=>x.id===r.customerId);
+      if(!c) return null;
+      const car = (c.cars||[]).find(x=>x.id===r.carId);
+      const label = car ? [car.makeType, car.category].filter(Boolean).join(' - ') : '';
+      return c.name + (label ? ' - ' + label : '');
+    }).filter(Boolean);
+    return `
+    <div class="container-card ${k.paid?'paid':'unpaid'}">
+      <div class="container-head">
+        <div>
+          <h3 style="margin:0;font-size:15.5px;">📦 ${escapeHtml(k.number||'بدون رقم')}</h3>
+          <div style="font-size:12.5px;color:var(--muted);margin-top:3px;">${k.expectedDate ? 'الوصول المتوقع: '+escapeHtml(k.expectedDate) : ''}${k.archived ? ' · <span style="color:var(--muted);font-weight:600;">مؤرشفة</span>' : ''}</div>
+          <div style="margin-top:6px;"><span class="badge ${k.paid?'ok':'due'}">${k.paid?'✓ تم الدفع':'لم يتم الدفع'}</span></div>
+        </div>
+        <div style="font-weight:700;color:var(--gold);font-size:14px;white-space:nowrap;">${fmt(k.price,'$')}</div>
+      </div>
+      ${names.length ? `<div class="container-customers">${names.map(n=>`<span class="customer-chip">${escapeHtml(n)}</span>`).join('')}</div>` : '<p style="font-size:12.5px;color:var(--muted);margin:8px 0 0;">لا يوجد زبائن مرتبطون</p>'}
+      ${k.notes ? `<div class="notes">${escapeHtml(k.notes)}</div>` : ''}
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+        <button class="btn ${k.paid?'btn-ghost':'btn-gold'} btn-sm" style="flex:1" data-toggle-paid="${k.id}">${k.paid?'إلغاء حالة الدفع':'💵 تم الدفع'}</button>
+        <button class="btn btn-ghost btn-sm" style="flex:1" data-print-container="${k.id}">🖨 قائمة الشحن (PDF)</button>
+        ${k.archived ? `
+          <button class="btn btn-ghost btn-sm" style="flex:1" data-restore-container="${k.id}">↩ استعادة من الأرشيف</button>
+          <button class="btn btn-danger-ghost btn-sm" style="flex:1" data-delete-container="${k.id}">حذف نهائي</button>
+        ` : `
+          <button class="btn btn-ghost btn-sm" style="flex:1" data-edit-container="${k.id}">تعديل</button>
+          <button class="btn btn-gold btn-sm" style="flex:1" data-archive-container="${k.id}">📦 أرشفة الحاوية</button>
+          <button class="btn btn-danger-ghost btn-sm" style="flex:1" data-delete-container="${k.id}">حذف</button>
+        `}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function getSuggestions(field){
+  const set = new Set();
+  customers.forEach(c => (c.cars||[]).forEach(car => {
+    if(car[field]) set.add(car[field]);
+  }));
+  return Array.from(set);
+}
+
+function nowStr(){
+  const d = new Date();
+  const date = d.toLocaleDateString('en-GB');
+  const time = d.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+  return date + ' ' + time;
+}
+
+// ---------- Event wiring ----------
+document.getElementById('mainAddBtn').addEventListener('click', () => {
+  if(viewMode === 'containers') openModal(containerFormHtml(null));
+  else openModal(customerFormHtml(null));
+});
+
+document.getElementById('searchBox').addEventListener('input', () => {
+  if(viewMode === 'containers') renderContainerList();
+  else renderList();
+});
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    viewMode = btn.dataset.view;
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b===btn));
+    document.getElementById('customerList').style.display = viewMode==='customers' ? '' : 'none';
+    document.getElementById('containerList').style.display = viewMode==='containers' ? '' : 'none';
+    document.getElementById('mainAddBtn').textContent = viewMode==='customers' ? '+ زبون جديد' : '+ حاوية جديدة';
+    document.getElementById('searchBox').placeholder = viewMode==='customers' ? 'ابحث بالاسم أو الهاتف...' : 'ابحث برقم الحاوية...';
+    document.getElementById('searchBox').value = '';
+    updateArchiveToggleLabel();
+    render();
+  });
+});
+
+document.getElementById('archiveToggleBtn').addEventListener('click', () => {
+  if(viewMode === 'customers') customerArchiveView = !customerArchiveView;
+  else containerArchiveView = !containerArchiveView;
+  openCustomerId = null;
+  updateArchiveToggleLabel();
+  render();
+});
+
+document.getElementById('settingsBtn').addEventListener('click', () => {
+  openModal(settingsModalHtml());
+});
+
+document.getElementById('exportBtn').addEventListener('click', exportBackup);
+document.getElementById('importBtn').addEventListener('click', () => {
+  document.getElementById('importFile').click();
+});
+document.getElementById('importFile').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if(file) importBackup(file);
+  e.target.value = '';
+});
+
+document.getElementById('idPhotoInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  const custId = e.target.dataset.customer;
+  if(!file || !custId) return;
+  try{
+    const dataUrl = await compressImage(file, 900, 0.72);
+    const c = customers.find(x=>x.id===custId);
+    c.idPhoto = dataUrl;
+    await saveData();
+    render();
+    showToast('تم حفظ صورة الهوية');
+  }catch(err){
+    showToast('تعذّر معالجة الصورة');
+  }
+  e.target.value = '';
+});
+
+document.getElementById('overlay').addEventListener('click', (e) => {
+  if(e.target.id === 'overlay') closeModal();
+});
+
+document.getElementById('modalBody').addEventListener('change', (e) => {
+  if(e.target.id === 'f_includesCustoms'){
+    const box = document.getElementById('customsFields');
+    if(box) box.style.display = e.target.checked ? 'block' : 'none';
+  }
+});
+
+document.getElementById('modalBody').addEventListener('click', async (e) => {
+  if(e.target.id === 'closeModal'){ closeModal(); return; }
+
+  if(e.target.id === 'saveSettings'){
+    settings.businessName = document.getElementById('s_businessName').value.trim();
+    settings.tagline = document.getElementById('s_tagline').value.trim();
+    settings.brokerName = document.getElementById('s_brokerName').value.trim();
+    settings.brokerDoc = document.getElementById('s_brokerDoc').value.trim();
+    settings.address = document.getElementById('s_address').value.trim();
+    settings.phone = document.getElementById('s_phone').value.trim();
+    settings.regNumber = document.getElementById('s_regNumber').value.trim();
+    settings.nextInvoiceNumber = parseInt(document.getElementById('s_nextInvoice').value) || settings.nextInvoiceNumber;
+    const logoFile = document.getElementById('s_logoFile').files[0];
+    if(logoFile){
+      try{ settings.logo = await compressImage(logoFile, 300, 0.85); }catch(e){}
+    }
+    saveSettings();
+    closeModal();
+    showToast('تم حفظ الإعدادات');
+    return;
+  }
+
+  if(e.target.id === 'saveCustomer'){
+    const name = document.getElementById('f_name').value.trim();
+    if(!name){ showToast('الرجاء إدخال اسم الزبون'); return; }
+    const location = document.getElementById('f_location').value.trim();
+    const phone = document.getElementById('f_phone').value.trim();
+    const nin = document.getElementById('f_nin').value.trim();
+    const postalCode = document.getElementById('f_postalCode').value.trim();
+    const passportCode = document.getElementById('f_passportCode').value.trim();
+    const email = document.getElementById('f_email').value.trim();
+
+    if(e.target.dataset.editing){
+      const c = customers.find(x=>x.id===e.target.dataset.editing);
+      c.name = name; c.location = location; c.phone = phone;
+      c.nin = nin; c.postalCode = postalCode; c.passportCode = passportCode; c.email = email;
+    } else {
+      const newCustomer = {id: uid(), name, location, phone, nin, postalCode, passportCode, email, cars: []};
+      const hasCarData = document.getElementById('f_customerPriceDZD');
+      if(hasCarData && parseFloat(hasCarData.value) > 0){
+        const carData = readCarForm();
+        carData.id = uid();
+        carData.dateAdded = nowStr();
+        newCustomer.cars.push(carData);
+      }
+      customers.push(newCustomer);
+      openCustomerId = newCustomer.id;
+    }
+    await saveData();
+    closeModal();
+    render();
+    showToast('تم الحفظ');
+  }
+
+  if(e.target.id === 'saveCar'){
+    const custId = e.target.dataset.customer;
+    const carId = e.target.dataset.car;
+    const c = customers.find(x=>x.id===custId);
+    const carData = readCarForm();
+    if(carId){
+      const idx = c.cars.findIndex(x=>x.id===carId);
+      c.cars[idx] = {...c.cars[idx], ...carData};
+    } else {
+      carData.id = uid();
+      carData.dateAdded = nowStr();
+      c.cars.push(carData);
+    }
+    openCustomerId = custId;
+    await saveData();
+    closeModal();
+    render();
+    showToast('تم الحفظ');
+  }
+
+  if(e.target.id === 'savePayment'){
+    const [custId, carId, type] = e.target.dataset.target.split('|');
+    const amount = parseFloat(document.getElementById('f_paymentAmount').value)||0;
+    if(amount <= 0){ showToast('الرجاء إدخال مبلغ صحيح'); return; }
+    const c = customers.find(x=>x.id===custId);
+    const car = c.cars.find(x=>x.id===carId);
+    if(!car.payments) car.payments = {customer:[],seller:[],shipper:[],customs:[]};
+    if(!car.payments[type]) car.payments[type] = [];
+    car.payments[type].push({amount, datetime: nowStr()});
+    openCustomerId = custId;
+    await saveData();
+    closeModal();
+    render();
+    showToast('تمت إضافة الدفعة');
+  }
+
+  if(e.target.closest('[data-delete-payment]')){
+    const btn = e.target.closest('[data-delete-payment]');
+    const [custId, carId, type, idx] = btn.dataset.deletePayment.split('|');
+    if(!confirm('حذف هذه الدفعة؟')) return;
+    const c = customers.find(x=>x.id===custId);
+    const car = c.cars.find(x=>x.id===carId);
+    car.payments[type].splice(Number(idx), 1);
+    openCustomerId = custId;
+    await saveData();
+    render();
+    openHistoryModal(custId, carId);
+    showToast('تم حذف الدفعة');
+  }
+
+  if(e.target.id === 'confirmDeleteCustomer'){
+    customers = customers.filter(x=>x.id!==e.target.dataset.customer);
+    await saveData();
+    closeModal();
+    render();
+    showToast('تم حذف الزبون');
+  }
+
+  if(e.target.id === 'confirmDeleteCar'){
+    const c = customers.find(x=>x.id===e.target.dataset.customer);
+    c.cars = c.cars.filter(x=>x.id!==e.target.dataset.car);
+    await saveData();
+    closeModal();
+    render();
+    showToast('تم حذف السيارة');
+  }
+
+  if(e.target.id === 'saveContainer'){
+    const number = document.getElementById('f_containerNumber').value.trim();
+    if(!number){ showToast('الرجاء إدخال رقم الحاوية'); return; }
+    const data = readContainerForm();
+    if(e.target.dataset.editing){
+      const idx = containers.findIndex(x=>x.id===e.target.dataset.editing);
+      containers[idx] = {...containers[idx], ...data};
+    } else {
+      data.id = uid();
+      data.archived = false;
+      data.dateAdded = nowStr();
+      containers.push(data);
+    }
+    await saveContainers();
+    closeModal();
+    render();
+    updateArchiveToggleLabel();
+    showToast('تم الحفظ');
+  }
+
+  if(e.target.id === 'confirmDeleteContainer'){
+    containers = containers.filter(x=>x.id!==e.target.dataset.container);
+    await saveContainers();
+    closeModal();
+    render();
+    updateArchiveToggleLabel();
+    showToast('تم حذف الحاوية');
+  }
+});
+
+document.getElementById('customerList').addEventListener('click', async (e) => {
+  const toggle = e.target.closest('[data-toggle]');
+  if(toggle){
+    const id = toggle.dataset.toggle;
+    openCustomerId = openCustomerId === id ? null : id;
+    renderList();
+    return;
+  }
+  const uploadId = e.target.closest('[data-upload-id]');
+  if(uploadId){
+    const input = document.getElementById('idPhotoInput');
+    input.dataset.customer = uploadId.dataset.uploadId;
+    input.click();
+    return;
+  }
+  const removeId = e.target.closest('[data-remove-id]');
+  if(removeId){
+    if(!confirm('حذف صورة الهوية لهذا الزبون؟')) return;
+    const c = customers.find(x=>x.id===removeId.dataset.removeId);
+    delete c.idPhoto;
+    await saveData();
+    render();
+    showToast('تم حذف الصورة');
+    return;
+  }
+  const archiveCustomer = e.target.closest('[data-archive-customer]');
+  if(archiveCustomer){
+    const c = customers.find(x=>x.id===archiveCustomer.dataset.archiveCustomer);
+    const {dueIn, dueOut, dueCustoms} = customerTotals(c);
+    const hasDue = dueIn > 0 || dueOut > 0 || dueCustoms > 0;
+    if(hasDue && !confirm('لا تزال هناك مستحقات غير مسددة لهذا الزبون. هل تريد أرشفته رغم ذلك؟')) return;
+    c.archived = true;
+    await saveData();
+    render();
+    updateArchiveToggleLabel();
+    showToast('تم أرشفة الزبون');
+    return;
+  }
+  const restoreCustomer = e.target.closest('[data-restore-customer]');
+  if(restoreCustomer){
+    const c = customers.find(x=>x.id===restoreCustomer.dataset.restoreCustomer);
+    c.archived = false;
+    await saveData();
+    render();
+    updateArchiveToggleLabel();
+    showToast('تمت استعادة الزبون');
+    return;
+  }
+  const addCar = e.target.closest('[data-add-car]');
+  if(addCar){
+    const custId = addCar.dataset.addCar;
+    openModal(`
+      <h2>إضافة سيارة جديدة</h2>
+      ${carFormFields()}
+      <div class="modal-actions">
+        <button class="btn btn-primary btn-block" id="saveCar" data-customer="${custId}">إضافة السيارة</button>
+      </div>
+    `);
+    return;
+  }
+  const history = e.target.closest('[data-history]');
+  if(history){
+    const [custId, carId] = history.dataset.history.split('|');
+    openHistoryModal(custId, carId);
+    return;
+  }
+  const printBtn = e.target.closest('[data-print]');
+  if(printBtn){
+    const [custId, carId] = printBtn.dataset.print.split('|');
+    printInvoice(custId, carId);
+    return;
+  }
+  const editCar = e.target.closest('[data-edit-car]');
+  if(editCar){
+    const [custId, carId] = editCar.dataset.editCar.split('|');
+    const c = customers.find(x=>x.id===custId);
+    const car = c.cars.find(x=>x.id===carId);
+    openModal(`
+      <h2>تعديل بيانات السيارة</h2>
+      ${carFormFields(car)}
+      <div class="modal-actions">
+        <button class="btn btn-primary btn-block" id="saveCar" data-customer="${custId}" data-car="${carId}">حفظ التعديلات</button>
+      </div>
+    `);
+    return;
+  }
+  const deleteCar = e.target.closest('[data-delete-car]');
+  if(deleteCar){
+    const [custId, carId] = deleteCar.dataset.deleteCar.split('|');
+    openModal(`
+      <h2>تأكيد الحذف</h2>
+      <p>هل أنت متأكد من حذف هذه السيارة؟ لا يمكن التراجع عن هذا الإجراء.</p>
+      <div class="modal-actions">
+        <button class="btn btn-danger-ghost btn-block" id="confirmDeleteCar" data-customer="${custId}" data-car="${carId}">نعم، احذف</button>
+      </div>
+    `);
+    return;
+  }
+  const editCustomer = e.target.closest('[data-edit-customer]');
+  if(editCustomer){
+    const c = customers.find(x=>x.id===editCustomer.dataset.editCustomer);
+    const html = customerFormHtml(c);
+    openModal(html);
+    document.getElementById('saveCustomer').dataset.editing = c.id;
+    return;
+  }
+  const deleteCustomer = e.target.closest('[data-delete-customer]');
+  if(deleteCustomer){
+    const custId = deleteCustomer.dataset.deleteCustomer;
+    openModal(`
+      <h2>تأكيد الحذف</h2>
+      <p>هل أنت متأكد من حذف هذا الزبون وكل سياراته؟ لا يمكن التراجع عن هذا الإجراء.</p>
+      <div class="modal-actions">
+        <button class="btn btn-danger-ghost btn-block" id="confirmDeleteCustomer" data-customer="${custId}">نعم، احذف</button>
+      </div>
+    `);
+    return;
+  }
+  const addPayment = e.target.closest('[data-add-payment]');
+  if(addPayment){
+    const [custId, carId, type] = addPayment.dataset.addPayment.split('|');
+    const labels = {customer:'دفعة من الزبون (دج)', seller:'دفعة للبائع الصيني ($)', shipper:'دفعة لشركة الشحن ($)', customs:'دفعة للجمركة (دج)'};
+    openModal(`
+      <h2>${labels[type]}</h2>
+      <div class="field"><label>المبلغ</label><input type="number" id="f_paymentAmount" placeholder="0" autofocus></div>
+      <div class="modal-actions">
+        <button class="btn btn-primary btn-block" id="savePayment" data-target="${custId}|${carId}|${type}">إضافة الدفعة</button>
+      </div>
+    `);
+    return;
+  }
+});
+
+document.getElementById('containerList').addEventListener('click', async (e) => {
+  const paidBtn = e.target.closest('[data-toggle-paid]');
+  if(paidBtn){
+    const k = containers.find(x=>x.id===paidBtn.dataset.togglePaid);
+    k.paid = !k.paid;
+    await saveContainers();
+    render();
+    showToast(k.paid ? 'تم تسجيل الدفع' : 'تم إلغاء حالة الدفع');
+    return;
+  }
+  const printBtn = e.target.closest('[data-print-container]');
+  if(printBtn){
+    printContainerManifest(printBtn.dataset.printContainer);
+    return;
+  }
+  const editBtn = e.target.closest('[data-edit-container]');
+  if(editBtn){
+    const k = containers.find(x=>x.id===editBtn.dataset.editContainer);
+    openModal(containerFormHtml(k));
+    return;
+  }
+  const archiveBtn = e.target.closest('[data-archive-container]');
+  if(archiveBtn){
+    if(!confirm('هل تم تسليم جميع السيارات في هذه الحاوية؟ سيتم نقلها إلى الأرشيف.')) return;
+    const k = containers.find(x=>x.id===archiveBtn.dataset.archiveContainer);
+    k.archived = true;
+    await saveContainers();
+    render();
+    updateArchiveToggleLabel();
+    showToast('تم أرشفة الحاوية');
+    return;
+  }
+  const restoreBtn = e.target.closest('[data-restore-container]');
+  if(restoreBtn){
+    const k = containers.find(x=>x.id===restoreBtn.dataset.restoreContainer);
+    k.archived = false;
+    await saveContainers();
+    render();
+    updateArchiveToggleLabel();
+    showToast('تمت استعادة الحاوية');
+    return;
+  }
+  const deleteBtn = e.target.closest('[data-delete-container]');
+  if(deleteBtn){
+    const containerId = deleteBtn.dataset.deleteContainer;
+    openModal(`
+      <h2>تأكيد الحذف</h2>
+      <p>هل أنت متأكد من حذف هذه الحاوية؟ لا يمكن التراجع عن هذا الإجراء.</p>
+      <div class="modal-actions">
+        <button class="btn btn-danger-ghost btn-block" id="confirmDeleteContainer" data-container="${containerId}">نعم، احذف</button>
+      </div>
+    `);
+    return;
+  }
+});
+
+loadSettings();
+loadData();
+loadContainers();
+updateArchiveToggleLabel();
+render();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(()=>{ /* not available over file:// - fine, app still works */ });
+  });
+}
+
+</script>
+</body>
+</html>
