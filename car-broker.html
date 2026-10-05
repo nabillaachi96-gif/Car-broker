@@ -237,6 +237,7 @@
   .container-card.unpaid{border-right:5px solid var(--coral);}
   .container-card.paid .container-head h3{color:var(--green);}
   .container-card.unpaid .container-head h3{color:var(--coral);}
+  .num-tag{display:inline-block;min-width:24px;padding:1px 7px;margin-left:8px;border-radius:7px;background:var(--navy);color:#fff;font-size:12px;font-weight:700;text-align:center;vertical-align:middle;}
   .container-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
   .container-customers{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
   .customer-chip{background:var(--gold-light);color:var(--gold);font-size:12px;padding:4px 10px;border-radius:999px;font-weight:600;}
@@ -355,6 +356,19 @@ let viewMode = 'customers'; // 'customers' | 'containers'
 let customerArchiveView = false;
 let containerArchiveView = false;
 
+function nextNum(list){
+  return list.reduce((m,x)=>Math.max(m, Number(x.num)||0), 0) + 1;
+}
+// Gives every record without a number the next free one (oldest first).
+// Returns true if anything was assigned.
+function assignNumbers(list){
+  let changed = false;
+  list.forEach(x => {
+    if(!x.num){ x.num = nextNum(list); changed = true; }
+  });
+  return changed;
+}
+
 function uid(){ return 'id' + Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
 
 function fmt(n, suffix){
@@ -418,6 +432,7 @@ async function loadData(){
     customers = [];
   }
   customers.forEach(c => { migrateCustomer(c); (c.cars||[]).forEach(migrateCar); });
+  if(assignNumbers(customers)) await saveData();
   render();
 }
 
@@ -437,6 +452,7 @@ async function loadContainers(){
     containers = [];
   }
   containers.forEach(migrateContainer);
+  if(assignNumbers(containers)) await saveContainers();
 }
 
 async function saveContainers(){
@@ -511,6 +527,8 @@ function importBackup(file){
       containers = newContainers;
       customers.forEach(c => { migrateCustomer(c); (c.cars||[]).forEach(migrateCar); });
       containers.forEach(migrateContainer);
+      assignNumbers(customers);
+      assignNumbers(containers);
       await saveData();
       await saveContainers();
       render();
@@ -612,7 +630,7 @@ function renderList(){
   const list = document.getElementById('customerList');
   const pool = customers.filter(c => !!c.archived === customerArchiveView);
   const filtered = pool.filter(c =>
-    !q || c.name.toLowerCase().includes(q) || (c.phone||'').includes(q)
+    !q || c.name.toLowerCase().includes(q) || (c.phone||'').includes(q) || String(c.num||'') === q.replace('#','')
   );
 
   if(pool.length === 0){
@@ -634,7 +652,7 @@ function renderList(){
     <div class="customer ${isOpen?'open':''}" data-id="${c.id}">
       <div class="customer-head" data-toggle="${c.id}">
         <div class="info">
-          <h3>${escapeHtml(c.name)}</h3>
+          <h3><span class="num-tag">${c.num||''}</span>${escapeHtml(c.name)}</h3>
           <div class="meta">${escapeHtml(c.location||'')}${c.location&&c.phone?' · ':''}${escapeHtml(c.phone||'')} · ${c.cars.length} ${c.cars.length===1?'سيارة':'سيارات'}</div>
         </div>
         <div class="right">
@@ -1137,7 +1155,7 @@ function renderContainerList(){
   const q = document.getElementById('searchBox').value.trim().toLowerCase();
   const list = document.getElementById('containerList');
   const pool = containers.filter(k => !!k.archived === containerArchiveView);
-  const filtered = pool.filter(k => !q || (k.number||'').toLowerCase().includes(q));
+  const filtered = pool.filter(k => !q || (k.number||'').toLowerCase().includes(q) || String(k.num||'') === q.replace('#',''));
 
   if(pool.length === 0){
     list.innerHTML = containerArchiveView
@@ -1162,7 +1180,7 @@ function renderContainerList(){
     <div class="container-card ${k.paid?'paid':'unpaid'}">
       <div class="container-head">
         <div>
-          <h3 style="margin:0;font-size:15.5px;">📦 ${escapeHtml(k.number||'بدون رقم')}</h3>
+          <h3 style="margin:0;font-size:15.5px;"><span class="num-tag">${k.num||''}</span>📦 ${escapeHtml(k.number||'بدون رقم')}</h3>
           <div style="font-size:12.5px;color:var(--muted);margin-top:3px;">${k.expectedDate ? 'الوصول المتوقع: '+escapeHtml(k.expectedDate) : ''}${k.archived ? ' · <span style="color:var(--muted);font-weight:600;">مؤرشفة</span>' : ''}</div>
           <div style="margin-top:6px;"><span class="badge ${k.paid?'ok':'due'}">${k.paid?'✓ تم الدفع':'لم يتم الدفع'}</span></div>
         </div>
@@ -1313,7 +1331,7 @@ document.getElementById('modalBody').addEventListener('click', async (e) => {
       c.name = name; c.location = location; c.phone = phone;
       c.nin = nin; c.postalCode = postalCode; c.passportCode = passportCode; c.email = email;
     } else {
-      const newCustomer = {id: uid(), name, location, phone, nin, postalCode, passportCode, email, cars: []};
+      const newCustomer = {id: uid(), num: nextNum(customers), name, location, phone, nin, postalCode, passportCode, email, cars: []};
       const hasCarData = document.getElementById('f_customerPriceDZD');
       if(hasCarData && parseFloat(hasCarData.value) > 0){
         const carData = readCarForm();
@@ -1406,6 +1424,7 @@ document.getElementById('modalBody').addEventListener('click', async (e) => {
       containers[idx] = {...containers[idx], ...data};
     } else {
       data.id = uid();
+      data.num = nextNum(containers);
       data.archived = false;
       data.dateAdded = nowStr();
       containers.push(data);
