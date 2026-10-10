@@ -238,7 +238,11 @@
   .container-card.paid .container-head h3{color:var(--green);}
   .container-card.unpaid .container-head h3{color:var(--coral);}
   .num-tag{display:inline-block;min-width:24px;padding:1px 7px;margin-left:8px;border-radius:7px;background:var(--navy);color:#fff;font-size:12px;font-weight:700;text-align:center;vertical-align:middle;}
-  .container-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .container-head{display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer;}
+  .container-head .right{display:flex;align-items:center;gap:10px;}
+  .container-card .container-body{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+  .container-card.open .container-body{display:block;}
+  .container-card.open .chev{transform:rotate(180deg);}
   .container-customers{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
   .customer-chip{background:var(--gold-light);color:var(--gold);font-size:12px;padding:4px 10px;border-radius:999px;font-weight:600;}
   .badge.archived{background:var(--border);color:var(--muted);}
@@ -352,6 +356,7 @@ let customers = [];
 let containers = [];
 let settings = {};
 let openCustomerId = null;
+let openContainerId = null;
 let viewMode = 'customers'; // 'customers' | 'containers'
 let customerArchiveView = false;
 let containerArchiveView = false;
@@ -1177,15 +1182,19 @@ function renderContainerList(){
       return c.name + (label ? ' - ' + label : '');
     }).filter(Boolean);
     return `
-    <div class="container-card ${k.paid?'paid':'unpaid'}">
-      <div class="container-head">
+    <div class="container-card ${k.paid?'paid':'unpaid'} ${openContainerId===k.id?'open':''}">
+      <div class="container-head" data-toggle-container="${k.id}">
         <div>
           <h3 style="margin:0;font-size:15.5px;"><span class="num-tag">${k.num||''}</span>📦 ${escapeHtml(k.number||'بدون رقم')}</h3>
           <div style="font-size:12.5px;color:var(--muted);margin-top:3px;">${k.expectedDate ? 'الوصول المتوقع: '+escapeHtml(k.expectedDate) : ''}${k.archived ? ' · <span style="color:var(--muted);font-weight:600;">مؤرشفة</span>' : ''}</div>
-          <div style="margin-top:6px;"><span class="badge ${k.paid?'ok':'due'}">${k.paid?'✓ تم الدفع':'لم يتم الدفع'}</span></div>
         </div>
-        <div style="font-weight:700;color:var(--gold);font-size:14px;white-space:nowrap;">${fmt(k.price,'$')}</div>
+        <div class="right">
+          <div style="font-weight:700;color:var(--gold);font-size:14px;white-space:nowrap;">${fmt(k.price,'$')}</div>
+          <span class="chev">▾</span>
+        </div>
       </div>
+      <div class="container-body">
+      <div style="margin-bottom:8px;"><span class="badge ${k.paid?'ok':'due'}">${k.paid?'✓ تم الدفع':'لم يتم الدفع'}</span></div>
       ${names.length ? `<div class="container-customers">${names.map(n=>`<span class="customer-chip">${escapeHtml(n)}</span>`).join('')}</div>` : '<p style="font-size:12.5px;color:var(--muted);margin:8px 0 0;">لا يوجد زبائن مرتبطون</p>'}
       ${k.notes ? `<div class="notes">${escapeHtml(k.notes)}</div>` : ''}
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
@@ -1199,6 +1208,7 @@ function renderContainerList(){
           <button class="btn btn-gold btn-sm" style="flex:1" data-archive-container="${k.id}">📦 أرشفة الحاوية</button>
           <button class="btn btn-danger-ghost btn-sm" style="flex:1" data-delete-container="${k.id}">حذف</button>
         `}
+      </div>
       </div>
     </div>`;
   }).join('');
@@ -1580,6 +1590,13 @@ document.getElementById('customerList').addEventListener('click', async (e) => {
 });
 
 document.getElementById('containerList').addEventListener('click', async (e) => {
+  const headBtn = e.target.closest('[data-toggle-container]');
+  if(headBtn){
+    const id = headBtn.dataset.toggleContainer;
+    openContainerId = openContainerId === id ? null : id;
+    render();
+    return;
+  }
   const paidBtn = e.target.closest('[data-toggle-paid]');
   if(paidBtn){
     const k = containers.find(x=>x.id===paidBtn.dataset.togglePaid);
