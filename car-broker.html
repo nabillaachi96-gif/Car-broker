@@ -217,9 +217,10 @@
   }
   .toast.show{opacity:1;}
 
-  .id-photo-row{display:flex;align-items:center;gap:10px;margin-top:8px;}
-  .id-thumb{width:56px;height:56px;border-radius:8px;object-fit:cover;border:1px solid var(--border);}
-  .id-placeholder{width:56px;height:56px;border-radius:8px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted);text-align:center;}
+  .id-photo-row{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap;}
+  .id-thumb{width:140px;height:92px;border-radius:8px;object-fit:cover;border:1px solid var(--border);cursor:pointer;}
+  .id-view-img{width:100%;max-height:70vh;object-fit:contain;border-radius:8px;border:1px solid var(--border);background:#f7f8fa;}
+  .id-placeholder{width:140px;height:92px;border-radius:8px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted);text-align:center;}
   .customer-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin-top:10px;padding:10px 12px;background:#f7f8fa;border-radius:10px;}
   .customer-info-grid div{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;}
   .customer-info-grid .k{color:var(--muted);}
@@ -290,9 +291,9 @@
     .inv-sign-box .line{border-top:1px solid #333;margin-top:34px;padding-top:6px;}
 
     .inv-buyer-cell{overflow:hidden;}
-    .inv-id-photo{float:left;width:150px;margin:0 12px 6px 0;text-align:center;font-size:9px;color:#6B7280;}
-    .inv-id-photo img{width:150px;height:105px;object-fit:cover;border:1px solid #D8DCE2;border-radius:6px;display:block;}
-    .inv-id-placeholder{width:150px;height:100px;border:1px dashed #C7CBD1;border-radius:6px;}
+    .inv-id-photo{float:left;width:215px;margin:0 12px 6px 0;text-align:center;font-size:9px;color:#6B7280;}
+    .inv-id-photo img{width:215px;height:140px;object-fit:cover;border:1px solid #D8DCE2;border-radius:6px;display:block;}
+    .inv-id-placeholder{width:215px;height:140px;border:1px dashed #C7CBD1;border-radius:6px;}
 
     .inv-footer{margin-top:14px;padding-top:8px;border-top:1px solid #E5E8EA;font-size:9.5px;color:#9AA1A9;text-align:center;}
 
@@ -667,8 +668,9 @@ function renderList(){
       </div>
       <div class="cars">
         <div class="id-photo-row">
-          ${c.idPhoto ? `<img src="${c.idPhoto}" class="id-thumb">` : `<div class="id-placeholder">لا توجد صورة</div>`}
+          ${c.idPhoto ? `<img src="${c.idPhoto}" class="id-thumb" data-view-id="${c.id}">` : `<div class="id-placeholder">لا توجد صورة</div>`}
           ${!c.archived ? `<button class="btn btn-ghost btn-sm" data-upload-id="${c.id}">📷 ${c.idPhoto ? 'تغيير صورة الهوية' : 'رفع صورة الهوية'}</button>` : ''}
+          ${c.idPhoto ? `<button class="btn btn-ghost btn-sm" data-view-id="${c.id}">🔍 فتح الصورة</button><button class="btn btn-ghost btn-sm" data-download-id="${c.id}">⬇ تحميل</button>` : ''}
           ${c.idPhoto && !c.archived ? `<button class="btn btn-danger-ghost btn-sm" data-remove-id="${c.id}">حذف الصورة</button>` : ''}
         </div>
         ${(c.nin||c.postalCode||c.passportCode||c.email) ? `
@@ -923,6 +925,18 @@ function printContainerManifest(containerId){
   `;
   document.getElementById('printArea').innerHTML = html;
   setTimeout(() => window.print(), 50);
+}
+
+function downloadIdPhoto(customerId){
+  const c = customers.find(x=>x.id===customerId);
+  if(!c || !c.idPhoto) return;
+  const a = document.createElement('a');
+  a.href = c.idPhoto;
+  a.download = 'ID-' + (c.name||'customer').replace(/[^\w\u0600-\u06FF-]+/g,'_') + '.jpg';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  showToast('تم تحميل الصورة');
 }
 
 function openHistoryModal(custId, carId){
@@ -1281,7 +1295,7 @@ document.getElementById('idPhotoInput').addEventListener('change', async (e) => 
   const custId = e.target.dataset.customer;
   if(!file || !custId) return;
   try{
-    const dataUrl = await compressImage(file, 900, 0.72);
+    const dataUrl = await compressImage(file, 1400, 0.82);
     const c = customers.find(x=>x.id===custId);
     c.idPhoto = dataUrl;
     await saveData();
@@ -1306,6 +1320,7 @@ document.getElementById('modalBody').addEventListener('change', (e) => {
 
 document.getElementById('modalBody').addEventListener('click', async (e) => {
   if(e.target.id === 'closeModal'){ closeModal(); return; }
+  if(e.target.id === 'downloadIdBtn'){ downloadIdPhoto(e.target.dataset.customer); return; }
 
   if(e.target.id === 'saveSettings'){
     settings.businessName = document.getElementById('s_businessName').value.trim();
@@ -1462,6 +1477,26 @@ document.getElementById('customerList').addEventListener('click', async (e) => {
     const id = toggle.dataset.toggle;
     openCustomerId = openCustomerId === id ? null : id;
     renderList();
+    return;
+  }
+  const viewId = e.target.closest('[data-view-id]');
+  if(viewId){
+    const c = customers.find(x=>x.id===viewId.dataset.viewId);
+    if(c && c.idPhoto){
+      openModal(`
+        <h2>بطاقة الهوية - ${escapeHtml(c.name)}</h2>
+        <img src="${c.idPhoto}" class="id-view-img">
+        <div class="modal-actions" style="margin-top:12px;display:flex;gap:8px;">
+          <button class="btn btn-primary" style="flex:1" id="downloadIdBtn" data-customer="${c.id}">⬇ تحميل الصورة</button>
+          <button class="btn btn-ghost" style="flex:1" id="closeModal">إغلاق</button>
+        </div>
+      `);
+    }
+    return;
+  }
+  const dlId = e.target.closest('[data-download-id]');
+  if(dlId){
+    downloadIdPhoto(dlId.dataset.downloadId);
     return;
   }
   const uploadId = e.target.closest('[data-upload-id]');
