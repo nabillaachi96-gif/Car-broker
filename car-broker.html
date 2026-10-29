@@ -219,6 +219,13 @@
 
   .id-photo-row{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap;}
   .id-thumb{width:140px;height:92px;border-radius:8px;object-fit:cover;border:1px solid var(--border);cursor:pointer;}
+  .docs-section{margin-top:10px;padding:10px 12px;background:#f7f8fa;border-radius:10px;}
+  .docs-title{font-size:12.5px;font-weight:700;color:var(--navy);margin-bottom:6px;}
+  .docs-empty{font-size:12px;color:var(--muted);}
+  .doc-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);}
+  .doc-thumb{width:64px;height:44px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:pointer;}
+  .doc-label{flex:1;font-size:13px;font-weight:600;}
+  .doc-actions{display:flex;gap:6px;}
   .id-view-img{width:100%;max-height:70vh;object-fit:contain;border-radius:8px;border:1px solid var(--border);background:#f7f8fa;}
   .id-placeholder{width:140px;height:92px;border-radius:8px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted);text-align:center;}
   .customer-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin-top:10px;padding:10px 12px;background:#f7f8fa;border-radius:10px;}
@@ -470,6 +477,7 @@ async function saveContainers(){
 }
 
 function migrateCustomer(c){
+  if(!Array.isArray(c.docs)) c.docs = [];
   if(c.archived === undefined) c.archived = false;
   if(c.nin === undefined) c.nin = '';
   if(c.postalCode === undefined) c.postalCode = '';
@@ -681,6 +689,7 @@ function renderList(){
           ${c.email ? `<div><span class="k">Email</span><span class="v">${escapeHtml(c.email)}</span></div>` : ''}
         </div>
         ` : ''}
+        ${customerDocsHtml(c)}
         ${c.cars.map(car => renderCar(c.id, car, c.archived)).join('')}
         ${!c.archived ? `<button class="btn btn-ghost btn-block add-car-btn" data-add-car="${c.id}">+ إضافة سيارة لهذا الزبون</button>` : ''}
         <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
@@ -925,6 +934,231 @@ function printContainerManifest(containerId){
   `;
   document.getElementById('printArea').innerHTML = html;
   setTimeout(() => window.print(), 50);
+}
+
+/* ===== Customer documents (residence card, etc.) + container documents PDF ===== */
+function customerDocsHtml(c){
+  const docs = c.docs || [];
+  return `
+  <div class="docs-section">
+    <div class="docs-title">وثائق أخرى (بطاقة الإقامة...)</div>
+    ${docs.length ? docs.map(d => `
+      <div class="doc-row">
+        <img src="${d.img}" class="doc-thumb" data-view-doc="${c.id}|${d.id}">
+        <div class="doc-label">${escapeHtml(d.label||'وثيقة')}</div>
+        <div class="doc-actions">
+          <button class="btn btn-ghost btn-sm" data-view-doc="${c.id}|${d.id}">🔍</button>
+          <button class="btn btn-ghost btn-sm" data-download-doc="${c.id}|${d.id}">⬇</button>
+          ${!c.archived ? `<button class="btn btn-danger-ghost btn-sm" data-delete-doc="${c.id}|${d.id}">حذف</button>` : ''}
+        </div>
+      </div>`).join('') : '<div class="docs-empty">لا توجد وثائق مضافة</div>'}
+    ${!c.archived ? `<button class="btn btn-ghost btn-sm" data-add-doc="${c.id}" style="margin-top:6px;">＋ إضافة وثيقة</button>` : ''}
+  </div>`;
+}
+
+function addDocFormHtml(customerId){
+  const labels = ['بطاقة الإقامة','رخصة السياقة','وثيقة أخرى'];
+  return `
+    <h2>إضافة وثيقة</h2>
+    <div class="field"><label>اسم الوثيقة</label>
+      <input id="f_docLabel" list="dl_docLabel" value="بطاقة الإقامة">
+      <datalist id="dl_docLabel">${labels.map(x=>`<option value="${x}">`).join('')}</datalist>
+    </div>
+    <div class="field"><label>صورة الوثيقة</label><input type="file" id="f_docFile" accept="image/*"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-block" id="saveDoc" data-customer="${customerId}">حفظ الوثيقة</button>
+    </div>`;
+}
+
+function findDoc(key){
+  const [cid, did] = key.split('|');
+  const c = customers.find(x=>x.id===cid);
+  const d = c && (c.docs||[]).find(x=>x.id===did);
+  return {c, d};
+}
+
+function downloadDataUrl(dataUrl, filename){
+  const a = document.createElement('a');
+  a.href = dataUrl; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function safeName(s){ return String(s||'file').replace(/[^\w؀-ۿ-]+/g,'_'); }
+
+function downloadDoc(key){
+  const {c, d} = findDoc(key);
+  if(!d) return;
+  downloadDataUrl(d.img, safeName(d.label)+'-'+safeName(c.name)+'.jpg');
+  showToast('تم تحميل الصورة');
+}
+
+/* ---------- PDF building (no external libraries) ---------- */
+const PDF_W = 1240, PDF_H = 1754; // A4 at ~150dpi
+
+function loadImg(src){
+  return new Promise((res, rej) => {
+    const im = new Image();
+    im.onload = () => res(im);
+    im.onerror = rej;
+    im.src = src;
+  });
+}
+function isArabicText(t){ return /[؀-ۿ]/.test(t||''); }
+
+// Draw text fitted into [x1,x2] on baseline-middle y, auto-direction.
+function drawFitted(ctx, text, x1, x2, y, size, weight, color){
+  text = (text===undefined||text===null||text==='') ? '-' : String(text);
+  const maxW = x2 - x1;
+  let fs = size;
+  ctx.font = `${weight} ${fs}px sans-serif`;
+  while(ctx.measureText(text).width > maxW && fs > 18){ fs -= 2; ctx.font = `${weight} ${fs}px sans-serif`; }
+  // still too long -> cut
+  let t = text;
+  while(ctx.measureText(t).width > maxW && t.length > 3){ t = t.slice(0,-2); }
+  if(t !== text) t += '…';
+  ctx.fillStyle = color;
+  ctx.textBaseline = 'middle';
+  if(isArabicText(t)){ ctx.direction = 'rtl'; ctx.textAlign = 'right'; ctx.fillText(t, x2, y); }
+  else { ctx.direction = 'ltr'; ctx.textAlign = 'left'; ctx.fillText(t, x1, y); }
+  ctx.direction = 'ltr'; ctx.textAlign = 'left';
+}
+
+function newPageCanvas(){
+  const cv = document.createElement('canvas');
+  cv.width = PDF_W; cv.height = PDF_H;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0,0,PDF_W,PDF_H);
+  return {cv, ctx};
+}
+
+function drawHeader(ctx, leftText, rightText){
+  ctx.fillStyle = '#16283D'; ctx.fillRect(0,0,PDF_W,110);
+  ctx.fillStyle = '#B8874B'; ctx.fillRect(0,110,PDF_W,6);
+  drawFitted(ctx, leftText, 60, 560, 55, 38, 'bold', '#ffffff');
+  drawFitted(ctx, rightText, 600, PDF_W-60, 55, 38, 'bold', '#ffffff');
+}
+
+function drawContained(ctx, img, bx, by, bw, bh){
+  const sc = Math.min(bw/img.width, bh/img.height);
+  const w = img.width*sc, h = img.height*sc;
+  const x = bx + (bw-w)/2, y = by + (bh-h)/2;
+  ctx.drawImage(img, x, y, w, h);
+  ctx.strokeStyle = '#D8DCE2'; ctx.lineWidth = 2; ctx.strokeRect(x, y, w, h);
+}
+
+async function buildInfoPage(c, carLabels, k){
+  const {cv, ctx} = newPageCanvas();
+  drawHeader(ctx, 'Customer N° ' + (c.num||''), 'Container: ' + (k.number||'-'));
+  const bx = 70, bw = PDF_W-140, by = 150, bh = 740;
+  if(c.idPhoto){
+    try{ drawContained(ctx, await loadImg(c.idPhoto), bx, by, bw, bh); }catch(e){}
+  } else {
+    ctx.setLineDash([12,10]); ctx.strokeStyle = '#C7CBD1'; ctx.lineWidth = 3;
+    ctx.strokeRect(bx, by, bw, bh); ctx.setLineDash([]);
+    drawFitted(ctx, 'No ID / passport photo', bx+20, bx+bw-20, by+bh/2, 36, 'normal', '#9AA1A9');
+  }
+  const rows = [
+    ['NIN', c.nin],
+    ['FULL NAME', c.name],
+    ['ADRESS', c.location],
+    ['CODE POSTAL', c.postalCode],
+    ['PASSPORT CODE', c.passportCode],
+    ['PHONE N°', c.phone],
+    ['EMAIL', c.email],
+    ['CAR NAME AND COLOR', carLabels.join('  |  ')]
+  ];
+  const rh = 88, ty = 930, labW = 400, tx1 = 70, tx2 = PDF_W-70;
+  rows.forEach((r, i) => {
+    const y = ty + i*rh;
+    ctx.fillStyle = '#F3F5F7'; ctx.fillRect(tx1, y, labW, rh);
+    ctx.strokeStyle = '#333'; ctx.lineWidth = 2;
+    ctx.strokeRect(tx1, y, tx2-tx1, rh);
+    ctx.beginPath(); ctx.moveTo(tx1+labW, y); ctx.lineTo(tx1+labW, y+rh); ctx.stroke();
+    drawFitted(ctx, r[0], tx1+18, tx1+labW-12, y+rh/2, 30, 'bold', '#16283D');
+    drawFitted(ctx, r[1], tx1+labW+22, tx2-22, y+rh/2, 32, 'normal', '#111');
+  });
+  return cv;
+}
+
+async function buildDocPage(c, d, k){
+  const {cv, ctx} = newPageCanvas();
+  drawHeader(ctx, d.label || 'Document', c.name || '');
+  try{ drawContained(ctx, await loadImg(d.img), 70, 160, PDF_W-140, PDF_H-160-70); }catch(e){}
+  return cv;
+}
+
+function canvasToJpegBytes(cv){
+  const b64 = cv.toDataURL('image/jpeg', 0.88).split(',')[1];
+  const bin = atob(b64);
+  const u = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) u[i] = bin.charCodeAt(i);
+  return {bytes:u, w:cv.width, h:cv.height};
+}
+
+function buildPdf(pages){
+  const enc = new TextEncoder();
+  const parts = []; let pos = 0; const offsets = {};
+  const push = x => { const u = typeof x === 'string' ? enc.encode(x) : x; parts.push(u); pos += u.length; };
+  const PW = 595.28, PH = 841.89;
+  push('%PDF-1.4\n');
+  offsets[1] = pos; push('1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
+  const kids = pages.map((_, i) => `${3+i*3} 0 R`).join(' ');
+  offsets[2] = pos; push(`2 0 obj\n<< /Type /Pages /Kids [${kids}] /Count ${pages.length} >>\nendobj\n`);
+  pages.forEach((p, i) => {
+    const pn = 3+i*3, cn = 4+i*3, im = 5+i*3;
+    offsets[pn] = pos;
+    push(`${pn} 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PW} ${PH}] /Resources << /XObject << /Im0 ${im} 0 R >> >> /Contents ${cn} 0 R >>\nendobj\n`);
+    const content = `q ${PW} 0 0 ${PH} 0 0 cm /Im0 Do Q`;
+    offsets[cn] = pos;
+    push(`${cn} 0 obj\n<< /Length ${content.length} >>\nstream\n${content}\nendstream\nendobj\n`);
+    offsets[im] = pos;
+    push(`${im} 0 obj\n<< /Type /XObject /Subtype /Image /Width ${p.w} /Height ${p.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${p.bytes.length} >>\nstream\n`);
+    push(p.bytes);
+    push('\nendstream\nendobj\n');
+  });
+  const total = 3 + pages.length*3;
+  const xrefPos = pos;
+  let xref = `xref\n0 ${total}\n0000000000 65535 f \n`;
+  for(let n=1; n<total; n++) xref += String(offsets[n]).padStart(10,'0') + ' 00000 n \n';
+  push(xref);
+  push(`trailer\n<< /Size ${total} /Root 1 0 R >>\nstartxref\n${xrefPos}\n%%EOF\n`);
+  return new Blob(parts, {type:'application/pdf'});
+}
+
+async function exportContainerDocs(containerId){
+  const k = containers.find(x=>x.id===containerId);
+  if(!k) return;
+  // group the container's cars by customer, keeping order
+  const groups = [];
+  (k.carRefs||[]).forEach(r => {
+    const c = customers.find(x=>x.id===r.customerId);
+    if(!c) return;
+    const car = (c.cars||[]).find(x=>x.id===r.carId);
+    const label = car ? [car.makeType, car.category].filter(Boolean).join(' ') : '';
+    let g = groups.find(x=>x.c.id===c.id);
+    if(!g){ g = {c, cars:[]}; groups.push(g); }
+    if(label) g.cars.push(label);
+  });
+  if(!groups.length){ showToast('لا يوجد زبائن في هذه الحاوية'); return; }
+  const missing = groups.filter(g => !g.c.idPhoto && !(g.c.docs||[]).length).map(g => g.c.name);
+  if(missing.length && !confirm('هؤلاء الزبائن بلا أي وثيقة:\n' + missing.join('\n') + '\n\nمتابعة وإنشاء الملف؟')) return;
+
+  showToast('جارٍ إنشاء الملف...');
+  try{
+    const pages = [];
+    for(const g of groups){
+      pages.push(canvasToJpegBytes(await buildInfoPage(g.c, g.cars, k)));
+      for(const d of (g.c.docs||[])){
+        pages.push(canvasToJpegBytes(await buildDocPage(g.c, d, k)));
+      }
+    }
+    const blob = buildPdf(pages);
+    const url = URL.createObjectURL(blob);
+    downloadDataUrl(url, 'container-' + safeName(k.number) + '-documents.pdf');
+    setTimeout(()=>URL.revokeObjectURL(url), 15000);
+    showToast('تم إنشاء الملف (' + pages.length + ' صفحة)');
+  }catch(err){
+    showToast('تعذّر إنشاء الملف');
+  }
 }
 
 function downloadIdPhoto(customerId){
@@ -1214,6 +1448,7 @@ function renderContainerList(){
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
         <button class="btn ${k.paid?'btn-ghost':'btn-gold'} btn-sm" style="flex:1" data-toggle-paid="${k.id}">${k.paid?'إلغاء حالة الدفع':'💵 تم الدفع'}</button>
         <button class="btn btn-ghost btn-sm" style="flex:1" data-print-container="${k.id}">🖨 قائمة الشحن (PDF)</button>
+        <button class="btn btn-ghost btn-sm" style="flex:1" data-docs-container="${k.id}">📄 وثائق الزبائن (PDF)</button>
         ${k.archived ? `
           <button class="btn btn-ghost btn-sm" style="flex:1" data-restore-container="${k.id}">↩ استعادة من الأرشيف</button>
           <button class="btn btn-danger-ghost btn-sm" style="flex:1" data-delete-container="${k.id}">حذف نهائي</button>
@@ -1320,6 +1555,27 @@ document.getElementById('modalBody').addEventListener('change', (e) => {
 
 document.getElementById('modalBody').addEventListener('click', async (e) => {
   if(e.target.id === 'closeModal'){ closeModal(); return; }
+  if(e.target.id === 'downloadDocBtn'){ downloadDoc(e.target.dataset.key); return; }
+  if(e.target.id === 'saveDoc'){
+    const custId = e.target.dataset.customer;
+    const c = customers.find(x=>x.id===custId);
+    const file = document.getElementById('f_docFile').files[0];
+    const label = document.getElementById('f_docLabel').value.trim() || 'وثيقة';
+    if(!file){ showToast('اختر صورة الوثيقة أولاً'); return; }
+    try{
+      const img = await compressImage(file, 1400, 0.82);
+      c.docs = c.docs || [];
+      c.docs.push({id: uid(), label, img, added: nowStr()});
+      openCustomerId = custId;
+      await saveData();
+      closeModal();
+      render();
+      showToast('تمت إضافة الوثيقة');
+    }catch(err){
+      showToast('تعذّر قراءة الصورة');
+    }
+    return;
+  }
   if(e.target.id === 'downloadIdBtn'){ downloadIdPhoto(e.target.dataset.customer); return; }
 
   if(e.target.id === 'saveSettings'){
@@ -1477,6 +1733,36 @@ document.getElementById('customerList').addEventListener('click', async (e) => {
     const id = toggle.dataset.toggle;
     openCustomerId = openCustomerId === id ? null : id;
     renderList();
+    return;
+  }
+  const addDoc = e.target.closest('[data-add-doc]');
+  if(addDoc){ openModal(addDocFormHtml(addDoc.dataset.addDoc)); return; }
+  const viewDoc = e.target.closest('[data-view-doc]');
+  if(viewDoc){
+    const {c, d} = findDoc(viewDoc.dataset.viewDoc);
+    if(d){
+      openModal(`
+        <h2>${escapeHtml(d.label||'وثيقة')} - ${escapeHtml(c.name)}</h2>
+        <img src="${d.img}" class="id-view-img">
+        <div class="modal-actions" style="margin-top:12px;display:flex;gap:8px;">
+          <button class="btn btn-primary" style="flex:1" id="downloadDocBtn" data-key="${c.id}|${d.id}">⬇ تحميل الصورة</button>
+          <button class="btn btn-ghost" style="flex:1" id="closeModal">إغلاق</button>
+        </div>
+      `);
+    }
+    return;
+  }
+  const dlDoc = e.target.closest('[data-download-doc]');
+  if(dlDoc){ downloadDoc(dlDoc.dataset.downloadDoc); return; }
+  const delDoc = e.target.closest('[data-delete-doc]');
+  if(delDoc){
+    const {c, d} = findDoc(delDoc.dataset.deleteDoc);
+    if(d && confirm('حذف هذه الوثيقة؟')){
+      c.docs = c.docs.filter(x=>x.id!==d.id);
+      await saveData();
+      render();
+      showToast('تم حذف الوثيقة');
+    }
     return;
   }
   const viewId = e.target.closest('[data-view-id]');
@@ -1639,6 +1925,11 @@ document.getElementById('containerList').addEventListener('click', async (e) => 
     await saveContainers();
     render();
     showToast(k.paid ? 'تم تسجيل الدفع' : 'تم إلغاء حالة الدفع');
+    return;
+  }
+  const docsBtn = e.target.closest('[data-docs-container]');
+  if(docsBtn){
+    await exportContainerDocs(docsBtn.dataset.docsContainer);
     return;
   }
   const printBtn = e.target.closest('[data-print-container]');
