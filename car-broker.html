@@ -245,6 +245,7 @@
   .container-card.unpaid{border-right:5px solid var(--coral);}
   .container-card.paid .container-head h3{color:var(--green);}
   .container-card.unpaid .container-head h3{color:var(--coral);}
+  .ctr-tag{display:inline-block;padding:1px 7px;border-radius:7px;background:#EDE4D3;color:#8a6430;font-size:10.5px;font-weight:700;}
   .num-tag{display:inline-block;min-width:24px;padding:1px 7px;margin-left:8px;border-radius:7px;background:var(--navy);color:#fff;font-size:12px;font-weight:700;text-align:center;vertical-align:middle;}
   .container-head{display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer;}
   .container-head .right{display:flex;align-items:center;gap:10px;}
@@ -531,6 +532,7 @@ function migrateCustomer(c){
 function migrateContainer(k){
   if(k.archived === undefined) k.archived = false;
   if(k.paid === undefined) k.paid = false;
+  if(k.rate === undefined) k.rate = 0;
   if(!Array.isArray(k.carRefs)){
     // Migrate from the old customer-level linking to per-car linking.
     // Only auto-map customers who have exactly one car (unambiguous);
@@ -611,6 +613,42 @@ function sumPayments(arr){
   return (arr||[]).reduce((s,p)=>s+(Number(p.amount)||0),0);
 }
 
+function round2(n){ return Math.round((Number(n)||0)*100)/100; }
+// Cars of a container that still exist (customer/car not deleted)
+function liveRefs(k){
+  return (k.carRefs||[]).filter(r => {
+    const c = customers.find(x=>x.id===r.customerId);
+    return c && (c.cars||[]).some(x=>x.id===r.carId);
+  });
+}
+function containerForCar(carId){
+  return containers.find(k => liveRefs(k).some(r=>r.carId===carId));
+}
+// Each car pays an equal share of the container price ($)
+function containerShare(k){
+  const n = liveRefs(k).length;
+  return n ? round2((Number(k.price)||0)/n) : 0;
+}
+// Auto-record (or remove) the shipping payment of every car in a container
+function syncContainerPayments(k){
+  customers.forEach(c => (c.cars||[]).forEach(car => {
+    if(car.payments && Array.isArray(car.payments.shipper)){
+      car.payments.shipper = car.payments.shipper.filter(p => p.containerId !== k.id);
+    }
+  }));
+  if(!k.paid) return;
+  const share = containerShare(k);
+  const ts = nowStr();
+  liveRefs(k).forEach(r => {
+    const c = customers.find(x=>x.id===r.customerId);
+    const car = c.cars.find(x=>x.id===r.carId);
+    if(!car.payments) car.payments = {customer:[],seller:[],shipper:[],customs:[]};
+    if(!Array.isArray(car.payments.shipper)) car.payments.shipper = [];
+    const rem = round2(share - sumPayments(car.payments.shipper));
+    if(rem > 0) car.payments.shipper.push({amount: rem, datetime: ts, containerId: k.id});
+  });
+}
+
 function calcCar(car){
   const payments = car.payments || {customer:[],seller:[],shipper:[],customs:[]};
   const paidByCustomer = sumPayments(payments.customer);
@@ -619,20 +657,26 @@ function calcCar(car){
   const paidCustomsAmt = sumPayments(payments.customs);
 
   const carRate = Number(car.carExchangeRate)||0;
-  const shippingRate = Number(car.shippingExchangeRate)||0;
+  let shippingRate = Number(car.shippingExchangeRate)||0;
   const customerPriceDZD = Number(car.customerPriceDZD)||0;
   const remainingCustomerDZD = customerPriceDZD - paidByCustomer;
   const carCostActual = Number(car.carCostActual)||0;
-  const shippingCostActual = Number(car.shippingCostActual)||0;
+  let shippingCostActual = Number(car.shippingCostActual)||0;
+  // A car inside a container: shipping = its share of the container price, at the container's reference rate
+  const ctr = containerForCar(car.id);
+  if(ctr){
+    shippingCostActual = containerShare(ctr);
+    if(Number(ctr.rate) > 0) shippingRate = Number(ctr.rate);
+  }
   const remainingSellerUSD = carCostActual - paidToSeller;
-  const remainingShipperUSD = shippingCostActual - paidToShipper;
+  const remainingShipperUSD = round2(shippingCostActual - paidToShipper);
   const includesCustoms = !!car.includesCustoms;
   const customsCostActual = includesCustoms ? (Number(car.customsCostActual)||0) : 0;
   const paidCustoms = includesCustoms ? paidCustomsAmt : 0;
   const remainingCustomsDZD = customsCostActual - paidCustoms;
   const totalCostDZD = (carCostActual * carRate) + (shippingCostActual * shippingRate) + customsCostActual;
   const profitDZD = customerPriceDZD - totalCostDZD;
-  return {customerPriceDZD, paidByCustomer, remainingCustomerDZD, carCostActual, shippingCostActual, paidToSeller, paidToShipper, remainingSellerUSD, remainingShipperUSD, includesCustoms, customsCostActual, paidCustoms, remainingCustomsDZD, totalCostDZD, profitDZD, carRate, shippingRate};
+  return {customerPriceDZD, paidByCustomer, remainingCustomerDZD, carCostActual, shippingCostActual, paidToSeller, paidToShipper, remainingSellerUSD, remainingShipperUSD, includesCustoms, customsCostActual, paidCustoms, remainingCustomsDZD, totalCostDZD, profitDZD, carRate, shippingRate, containerNum: ctr ? (ctr.num||'') : null, containerNumber: ctr ? ctr.number : null};
 }
 
 function migrateCar(car){
@@ -768,7 +812,7 @@ function renderCar(customerId, car, archived){
       <div class="row-item"><div class="k">تكلفة السيارة الفعلية</div><div class="v">${fmt(r.carCostActual,'$')}</div></div>
       <div class="row-item"><div class="k">سعر صرف السيارة</div><div class="v">${fmt(r.carRate,'دج/$')}</div></div>
       <div class="row-item"><div class="k">المتبقي للبائع الصيني</div><div class="v ${r.remainingSellerUSD>0?'coral':'green'}">${fmt(r.remainingSellerUSD,'$')}</div></div>
-      <div class="row-item"><div class="k">تكلفة الشحن الفعلية</div><div class="v">${fmt(r.shippingCostActual,'$')}</div></div>
+      <div class="row-item"><div class="k">تكلفة الشحن الفعلية${r.containerNumber!==null ? ` <span class="ctr-tag">حاوية ${r.containerNum?'#'+r.containerNum:''}</span>` : ''}</div><div class="v">${fmt(r.shippingCostActual,'$')}</div></div>
       <div class="row-item"><div class="k">سعر صرف الشحن</div><div class="v">${fmt(r.shippingRate,'دج/$')}</div></div>
       <div class="row-item"><div class="k">المتبقي لشركة الشحن</div><div class="v ${r.remainingShipperUSD>0?'coral':'green'}">${fmt(r.remainingShipperUSD,'$')}</div></div>
       ${r.includesCustoms ? `
@@ -821,6 +865,7 @@ function updateArchiveToggleLabel(){
 function openModal(html){
   document.getElementById('modalBody').innerHTML = `<button class="close-x" id="closeModal">✕</button>` + html;
   document.getElementById('overlay').classList.add('show');
+  if(typeof updateContainerPreview === 'function') updateContainerPreview();
 }
 function closeModal(){
   document.getElementById('overlay').classList.remove('show');
@@ -1226,7 +1271,7 @@ function openHistoryModal(custId, carId){
   let rows = [];
   ['customer','seller','shipper','customs'].forEach(type => {
     (car.payments[type]||[]).forEach((p, idx) => {
-      rows.push({type, idx, amount:p.amount, datetime:p.datetime});
+      rows.push({type, idx, amount:p.amount, datetime:p.datetime, auto:!!p.containerId});
     });
   });
   rows.sort((a,b) => (b.datetime||'').localeCompare(a.datetime||''));
@@ -1234,7 +1279,7 @@ function openHistoryModal(custId, carId){
   const rowsHtml = rows.length ? rows.map(row => `
     <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
       <div>
-        <div style="font-size:13.5px;font-weight:600;">${typeLabels[row.type]} — ${fmt(row.amount, typeCurrency[row.type])}</div>
+        <div style="font-size:13.5px;font-weight:600;">${typeLabels[row.type]} — ${fmt(row.amount, typeCurrency[row.type])}${row.auto ? ' <span class="ctr-tag">تلقائي من الحاوية</span>' : ''}</div>
         <div style="font-size:11.5px;color:var(--muted);">${row.datetime||'بدون تاريخ'}</div>
       </div>
       <button class="btn btn-danger-ghost btn-sm" data-delete-payment="${custId}|${carId}|${row.type}|${row.idx}">حذف</button>
@@ -1333,8 +1378,18 @@ function carFormFields(existing){
       <div class="field"><label>سعر صرف السيارة (دج مقابل 1$)</label><input type="number" id="f_carExchangeRate" value="${v('carExchangeRate')}"></div>
     </div>
     <div class="field-row">
-      <div class="field"><label>تكلفة الشحن الفعلية ($)</label><input type="number" id="f_shippingCostActual" value="${v('shippingCostActual')}"></div>
-      <div class="field"><label>سعر صرف الشحن (دج مقابل 1$)</label><input type="number" id="f_shippingExchangeRate" value="${v('shippingExchangeRate')}"></div>
+      ${(()=>{
+        const ctr = existing ? containerForCar(existing.id) : null;
+        if(ctr){
+          return `<div class="field" style="grid-column:1/-1;background:#f7f8fa;border-radius:10px;padding:10px 12px;font-size:13px;">
+            <b>الشحن محسوب من الحاوية ${escapeHtml(ctr.number||'')}</b><br>
+            نصيب السيارة: ${fmt(containerShare(ctr),'$')} ${Number(ctr.rate)>0?' · سعر الصرف: '+fmt(ctr.rate,'دج/$'):''}<br>
+            <span style="color:var(--muted);">يتغير من تعديل الحاوية نفسها.</span>
+          </div>`;
+        }
+        return `<div class="field"><label>تكلفة الشحن الفعلية ($) - تقريبية</label><input type="number" id="f_shippingCostActual" value="${v('shippingCostActual')}"></div>
+      <div class="field"><label>سعر صرف الشحن (دج مقابل 1$)</label><input type="number" id="f_shippingExchangeRate" value="${v('shippingExchangeRate')}"></div>`;
+      })()}
     </div>
     ${isNew ? `
     <div class="section-title">دفعة أولى (اختياري، يمكن إضافتها لاحقًا)</div>
@@ -1357,11 +1412,16 @@ function readCarForm(){
     includesCustoms,
     customsCostActual: includesCustoms ? (parseFloat(document.getElementById('f_customsCostActual').value)||0) : 0,
     carExchangeRate: parseFloat(document.getElementById('f_carExchangeRate').value)||0,
-    shippingExchangeRate: parseFloat(document.getElementById('f_shippingExchangeRate').value)||0,
     carCostActual: parseFloat(document.getElementById('f_carCostActual').value)||0,
-    shippingCostActual: parseFloat(document.getElementById('f_shippingCostActual').value)||0,
     notes: document.getElementById('f_notes').value.trim()
   };
+
+  // Shipping fields are absent when the car is inside a container (they come from the container)
+  const shipCostEl = document.getElementById('f_shippingCostActual');
+  if(shipCostEl){
+    data.shippingCostActual = parseFloat(shipCostEl.value)||0;
+    data.shippingExchangeRate = parseFloat(document.getElementById('f_shippingExchangeRate').value)||0;
+  }
 
   // Only present on the "new car" form - build initial payment history entries
   const initCustomerEl = document.getElementById('f_initialCustomer');
@@ -1405,7 +1465,11 @@ function containerFormHtml(existing){
   return `
     <h2>${existing?'تعديل بيانات الحاوية':'حاوية جديدة'}</h2>
     <div class="field"><label>رقم الحاوية</label><input id="f_containerNumber" value="${escapeHtml(k.number)}" placeholder="مثال: MSKU1234567"></div>
-    <div class="field"><label>ثمن الحاوية ($)</label><input type="number" id="f_containerPrice" value="${k.price||''}"></div>
+    <div class="field-row">
+      <div class="field"><label>ثمن الحاوية ($)</label><input type="number" id="f_containerPrice" value="${k.price||''}"></div>
+      <div class="field"><label>سعر الدولار المرجعي (دج)</label><input type="number" id="f_containerRate" value="${k.rate||''}"></div>
+    </div>
+    <div id="containerSharePreview" style="font-size:13px;color:var(--navy);background:#f7f8fa;border-radius:10px;padding:8px 12px;margin-bottom:12px;"></div>
     <div class="field"><label>التاريخ المتوقع للوصول</label><input type="date" id="f_containerDate" value="${k.expectedDate||''}"></div>
     <div class="field">
       <label>السيارات في هذه الحاوية</label>
@@ -1442,6 +1506,7 @@ function readContainerForm(){
   return {
     number: document.getElementById('f_containerNumber').value.trim(),
     price: parseFloat(document.getElementById('f_containerPrice').value)||0,
+    rate: parseFloat(document.getElementById('f_containerRate').value)||0,
     expectedDate: document.getElementById('f_containerDate').value,
     notes: document.getElementById('f_containerNotes').value.trim(),
     paid: document.getElementById('f_containerPaid').checked,
@@ -1488,6 +1553,7 @@ function renderContainerList(){
       </div>
       <div class="container-body">
       <div style="margin-bottom:8px;"><span class="badge ${k.paid?'ok':'due'}">${k.paid?'✓ تم الدفع':'لم يتم الدفع'}</span></div>
+      ${liveRefs(k).length && k.price ? `<div style="font-size:13px;color:var(--navy);background:#f7f8fa;border-radius:10px;padding:8px 12px;margin-bottom:8px;">نصيب كل سيارة: ${fmt(k.price,'$')} ÷ ${liveRefs(k).length} = <b>${fmt(containerShare(k),'$')}</b>${Number(k.rate)>0 ? ` · سعر الدولار: <b>${fmt(k.rate,'دج')}</b>` : ' · <span style="color:var(--coral);">لم يُحدد سعر الدولار</span>'}</div>` : ''}
       ${names.length ? `<div class="container-customers">${names.map(n=>`<span class="customer-chip">${escapeHtml(n)}</span>`).join('')}</div>` : '<p style="font-size:12.5px;color:var(--muted);margin:8px 0 0;">لا يوجد زبائن مرتبطون</p>'}
       ${k.notes ? `<div class="notes">${escapeHtml(k.notes)}</div>` : ''}
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
@@ -1596,6 +1662,18 @@ document.getElementById('idPhotoInput').addEventListener('change', async (e) => 
 document.getElementById('overlay').addEventListener('click', (e) => {
   if(e.target.id === 'overlay') closeModal();
 });
+
+function updateContainerPreview(){
+  const box = document.getElementById('containerSharePreview');
+  if(!box) return;
+  const price = parseFloat(document.getElementById('f_containerPrice').value)||0;
+  const rate = parseFloat(document.getElementById('f_containerRate').value)||0;
+  const n = document.querySelectorAll('.f_containerCar:checked').length;
+  if(!n){ box.textContent = 'اختر السيارات لحساب نصيب كل سيارة'; return; }
+  const share = round2(price/n);
+  box.textContent = `نصيب كل سيارة: ${fmt(price,'$')} ÷ ${n} = ${fmt(share,'$')}` + (rate>0 ? ` (≈ ${fmt(Math.round(share*rate),'دج')})` : '');
+}
+document.getElementById('modalBody').addEventListener('input', updateContainerPreview);
 
 document.getElementById('modalBody').addEventListener('change', (e) => {
   if(e.target.id === 'f_includesCustoms'){
@@ -1763,6 +1841,9 @@ document.getElementById('modalBody').addEventListener('click', async (e) => {
       data.dateAdded = nowStr();
       containers.push(data);
     }
+    const savedK = containers.find(x=>x.id === (e.target.dataset.editing || data.id));
+    syncContainerPayments(savedK);
+    await saveData();
     await saveContainers();
     closeModal();
     render();
@@ -1771,6 +1852,8 @@ document.getElementById('modalBody').addEventListener('click', async (e) => {
   }
 
   if(e.target.id === 'confirmDeleteContainer'){
+    const delK = containers.find(x=>x.id===e.target.dataset.container);
+    if(delK){ delK.paid = false; syncContainerPayments(delK); await saveData(); }
     containers = containers.filter(x=>x.id!==e.target.dataset.container);
     await saveContainers();
     closeModal();
@@ -1975,6 +2058,8 @@ document.getElementById('containerList').addEventListener('click', async (e) => 
   if(paidBtn){
     const k = containers.find(x=>x.id===paidBtn.dataset.togglePaid);
     k.paid = !k.paid;
+    syncContainerPayments(k);
+    await saveData();
     await saveContainers();
     render();
     showToast(k.paid ? 'تم تسجيل الدفع' : 'تم إلغاء حالة الدفع');
